@@ -100,6 +100,7 @@ func (b *BodyView) updateTabBar() {
 
 func (b *BodyView) SetActiveView(view Tab) {
 	b.activeView = view
+	b.showingValue = false
 	b.updateTabBar()
 
 	switch view {

@@ -273,7 +273,15 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 				go func() {
 					keys := ui.scanner.FindKeysWithPrefix(ui.scanner.State.CurrentPrefix, 1)
 					if len(keys) > 0 {
-						_ = ui.scanner.FetchKeyValue(keys[0])
+						err := ui.scanner.FetchKeyValue(keys[0])
+						if err != nil {
+							ui.scanner.State.KeyValue = &models.KeyValueInfo{
+								Key:   keys[0],
+								Type:  "error",
+								Value: fmt.Sprintf("Failed to fetch: %v", err),
+							}
+							ui.scanner.State.Updates <- ui.scanner.State
+						}
 					}
 				}()
 			}
@@ -281,7 +289,6 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 		}
 	case tcell.KeyBackspace, tcell.KeyBackspace2, tcell.KeyLeft:
 		if ui.body.ActiveView() == "namespace" {
-			ui.scanner.State.KeyValue = nil // clear value viewer
 			ui.scanner.LevelUpNamespace()
 			return nil
 		}

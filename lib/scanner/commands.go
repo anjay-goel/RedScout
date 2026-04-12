@@ -341,17 +341,17 @@ func (s *Scanner) FetchKeyValue(key string) error {
 		if err == nil {
 			info.Length = length
 		}
-		vals, err := s.redis.HGetAll(ctx, key).Result()
+		// Use HScan to avoid loading entire hash into memory
+		var cursor uint64
+		scanKeys, _, err := s.redis.HScan(ctx, key, cursor, "*", 10).Result()
 		if err == nil {
-			lines := make([]string, 0, len(vals))
-			count := 0
-			for k, v := range vals {
-				if count >= 10 {
-					lines = append(lines, fmt.Sprintf("... (%d more)", length-10))
-					break
-				}
-				lines = append(lines, fmt.Sprintf("%s: %s", k, v))
-				count++
+			lines := make([]string, 0, 10)
+			// HScan returns alternating key, value pairs
+			for i := 0; i+1 < len(scanKeys) && len(lines) < 10; i += 2 {
+				lines = append(lines, fmt.Sprintf("%s: %s", scanKeys[i], scanKeys[i+1]))
+			}
+			if length > int64(len(lines)) {
+				lines = append(lines, fmt.Sprintf("... (%d more)", length-int64(len(lines))))
 			}
 			info.Value = strings.Join(lines, "\n")
 		}
