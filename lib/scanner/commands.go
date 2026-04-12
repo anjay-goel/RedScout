@@ -201,14 +201,32 @@ func (s *Scanner) MonitorOps() error {
 				continue
 			}
 			cmd := strings.ToLower(parts[1])
-			var key string
-			if len(parts) >= 4 {
-				key = parts[3]
-			}
 			if cmd == "eval" {
 				continue
 			}
-			_, _ = s.monitorFile.WriteString(fmt.Sprintf("%s %s\n", key, cmd))
+
+			// Extract keys from quoted args (parts[3], parts[5], parts[7], ...)
+			var keys []string
+			switch cmd {
+			case "mset", "msetnx":
+				// MSET key1 val1 key2 val2 ... — every other arg is a key
+				for j := 3; j < len(parts); j += 4 {
+					keys = append(keys, parts[j])
+				}
+			case "mget", "del", "unlink", "exists", "touch", "watch":
+				// All args are keys
+				for j := 3; j < len(parts); j += 2 {
+					keys = append(keys, parts[j])
+				}
+			default:
+				if len(parts) >= 4 {
+					keys = append(keys, parts[3])
+				}
+			}
+
+			for _, key := range keys {
+				_, _ = s.monitorFile.WriteString(fmt.Sprintf("%s %s\n", key, cmd))
+			}
 		case <-progressTicker.C:
 			elapsed := time.Since(s.State.MonitorStartTime)
 			s.State.MonitorProgress = min(float64(elapsed)/float64(s.Config.MonitorDuration)*100, 100)
