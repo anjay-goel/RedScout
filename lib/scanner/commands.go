@@ -129,9 +129,7 @@ func (s *Scanner) ScanMemory() error {
 			trips = append(trips, tr)
 		}
 
-		if _, err := pipe.Exec(s.ctx); err != nil {
-			return err
-		}
+		_, _ = pipe.Exec(s.ctx)
 
 		for _, tr := range trips {
 			xMem, e1 := tr.mem.Result()
