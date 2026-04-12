@@ -225,6 +225,27 @@ func (ui *AppUI) stateUpdateListener() {
 	}
 }
 
+// fetchAndShowKeyValue fetches a key's value and shows it in the viewer.
+// If key is empty, finds the first key matching the current namespace prefix.
+func (ui *AppUI) fetchAndShowKeyValue(key string) {
+	if key == "" {
+		keys := ui.scanner.FindKeysWithPrefix(ui.scanner.State.CurrentPrefix, 1)
+		if len(keys) == 0 {
+			return
+		}
+		key = keys[0]
+	}
+	err := ui.scanner.FetchKeyValue(key)
+	if err != nil {
+		ui.scanner.State.KeyValue = &models.KeyValueInfo{
+			Key:   key,
+			Type:  "error",
+			Value: fmt.Sprintf("Failed to fetch: %v", err),
+		}
+		ui.scanner.State.Updates <- ui.scanner.State
+	}
+}
+
 func (ui *AppUI) Run() error {
 	ui.createDisclaimerScreen()
 	return ui.app.Run()
@@ -260,7 +281,11 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 
 	switch e.Key() {
 	case tcell.KeyEnter, tcell.KeyRight:
-		if ui.body.ActiveView() == "namespace" && !ui.body.IsShowingValue() {
+		if ui.body.IsShowingValue() {
+			return nil
+		}
+		switch ui.body.ActiveView() {
+		case "namespace":
 			row, _ := ui.body.NamespaceTable().GetSelection()
 			if row <= 0 || row > len(ui.scanner.State.NamespaceStats) {
 				return nil
@@ -270,24 +295,32 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 
 			// If no sub-namespaces, find a matching key and fetch its value
 			if len(ui.scanner.State.NamespaceStats) == 0 {
-				go func() {
-					keys := ui.scanner.FindKeysWithPrefix(ui.scanner.State.CurrentPrefix, 1)
-					if len(keys) > 0 {
-						err := ui.scanner.FetchKeyValue(keys[0])
-						if err != nil {
-							ui.scanner.State.KeyValue = &models.KeyValueInfo{
-								Key:   keys[0],
-								Type:  "error",
-								Value: fmt.Sprintf("Failed to fetch: %v", err),
-							}
-							ui.scanner.State.Updates <- ui.scanner.State
-						}
-					}
-				}()
+				go ui.fetchAndShowKeyValue("")
 			}
+			return nil
+		case "bigkeys":
+			row, _ := ui.body.BigKeyTable().GetSelection()
+			if row <= 0 || row > len(ui.scanner.State.BigKeys) {
+				return nil
+			}
+			key := ui.scanner.State.BigKeys[row-1].Key.String()
+			go ui.fetchAndShowKeyValue(key)
+			return nil
+		case "hotkeys":
+			row, _ := ui.body.HotKeyTable().GetSelection()
+			if row <= 0 || row > len(ui.scanner.State.HotKeys) {
+				return nil
+			}
+			key := ui.scanner.State.HotKeys[row-1].Key.String()
+			go ui.fetchAndShowKeyValue(key)
 			return nil
 		}
 	case tcell.KeyBackspace, tcell.KeyBackspace2, tcell.KeyLeft:
+		if ui.body.IsShowingValue() {
+			ui.scanner.State.KeyValue = nil
+			ui.body.SetActiveView(ui.body.ActiveView()) // re-render current tab
+			return nil
+		}
 		if ui.body.ActiveView() == "namespace" {
 			ui.scanner.LevelUpNamespace()
 			return nil

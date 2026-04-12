@@ -142,18 +142,11 @@ func (b *BodyView) Update(data *models.State) {
 	components.UpdateBigKeyTable(b.bigKeyTable, data.BigKeys)
 	components.UpdateHotKeyTable(b.hotKeyTable, data.HotKeys)
 
-	// Show key value viewer when at leaf level
-	if b.activeView == TabNamespace && len(data.NamespaceStats) == 0 && data.KeyValue != nil {
-		if !b.showingValue {
-			b.showingValue = true
-			b.ContentFlex.Clear().AddItem(b.keyValueView.View, 0, 1, true)
-			b.app.SetFocus(b.keyValueView.View)
-		}
+	// Show key value viewer when key value data is available
+	if data.KeyValue != nil && !b.showingValue {
+		b.ShowKeyValue(data.KeyValue)
+	} else if data.KeyValue != nil && b.showingValue {
 		b.keyValueView.Update(data.KeyValue)
-	} else if b.showingValue && b.activeView == TabNamespace {
-		b.showingValue = false
-		b.ContentFlex.Clear().AddItem(b.namespace.Flex, 0, 2, true)
-		b.app.SetFocus(b.namespace.Table)
 	}
 }
 
@@ -208,4 +201,19 @@ func (b *BodyView) ActiveView() Tab {
 
 func (b *BodyView) NamespaceTable() *tview.Table {
 	return b.namespace.Table
+}
+
+func (b *BodyView) BigKeyTable() *tview.Table {
+	return b.bigKeyTable
+}
+
+func (b *BodyView) HotKeyTable() *tview.Table {
+	return b.hotKeyTable
+}
+
+func (b *BodyView) ShowKeyValue(info *models.KeyValueInfo) {
+	b.showingValue = true
+	b.keyValueView.Update(info)
+	b.ContentFlex.Clear().AddItem(b.keyValueView.View, 0, 1, true)
+	b.app.SetFocus(b.keyValueView.View)
 }
