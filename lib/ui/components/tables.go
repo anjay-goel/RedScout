@@ -16,7 +16,10 @@ func tableStyles() table.Styles {
 	s.Header = lipgloss.NewStyle().
 		Foreground(theme.Secondary).
 		Bold(true).
-		Padding(0, 1)
+		Padding(0, 1).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderBottom(true).
+		BorderForeground(theme.Border)
 	s.Selected = lipgloss.NewStyle().
 		Foreground(theme.Text).
 		Background(theme.Border).
@@ -162,13 +165,14 @@ func SlowLogRows(logs models.SlowLogList) []table.Row {
 	return rows
 }
 
-func NewTable(columns []table.Column, rows []table.Row, height int) table.Model {
+func NewTable(columns []table.Column, rows []table.Row, height int, width int) table.Model {
 	t := table.New(
+		table.WithStyles(tableStyles()),
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(height),
+		table.WithWidth(width),
 	)
-	t.SetStyles(tableStyles())
 	return t
 }

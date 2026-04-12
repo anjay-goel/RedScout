@@ -1,6 +1,8 @@
 package screens
 
 import (
+	"fmt"
+
 	"charm.land/bubbles/v2/table"
 	"charm.land/lipgloss/v2"
 	tea "charm.land/bubbletea/v2"
@@ -34,30 +36,35 @@ func (m *MainModel) rebuildTable() {
 		tableHeight = 20 // sensible default before window size is known
 	}
 
+	w := m.Width
+	if w < 80 {
+		w = 120
+	}
+
 	switch m.ActiveTab {
 	case components.TabNamespace:
 		m.Table = components.NewTable(
-			components.NamespaceColumns(m.Width),
+			components.NamespaceColumns(w),
 			components.NamespaceRows(m.State.NamespaceStats),
-			tableHeight,
+			tableHeight, w,
 		)
 	case components.TabBigKeys:
 		m.Table = components.NewTable(
-			components.BigKeyColumns(m.Width),
+			components.BigKeyColumns(w),
 			components.BigKeyRows(m.State.BigKeys),
-			tableHeight,
+			tableHeight, w,
 		)
 	case components.TabHotKeys:
 		m.Table = components.NewTable(
-			components.HotKeyColumns(m.Width),
+			components.HotKeyColumns(w),
 			components.HotKeyRows(m.State.HotKeys),
-			tableHeight,
+			tableHeight, w,
 		)
 	case components.TabSlowLog:
 		m.Table = components.NewTable(
-			components.SlowLogColumns(m.Width),
+			components.SlowLogColumns(w),
 			components.SlowLogRows(m.State.SlowLogs),
-			tableHeight,
+			tableHeight, w,
 		)
 	}
 }
@@ -78,11 +85,14 @@ func (m MainModel) View() string {
 	tabBar := components.RenderTabBar(m.ActiveTab, m.Width)
 
 	var content string
+	debug := fmt.Sprintf("[DEBUG] ns=%d bigk=%d hotk=%d slow=%d h=%d w=%d tab=%d tableH=%d",
+		len(m.State.NamespaceStats), len(m.State.BigKeys), len(m.State.HotKeys),
+		len(m.State.SlowLogs), m.Height, m.Width, m.ActiveTab, m.Height-8)
 	if m.ActiveTab == components.TabNamespace {
 		breadcrumb := components.RenderBreadcrumb(m.State.CurrentPrefix, m.Width)
-		content = breadcrumb + "\n" + m.Table.View()
+		content = breadcrumb + "\n" + debug + "\n" + m.Table.View()
 	} else {
-		content = m.Table.View()
+		content = debug + "\n" + m.Table.View()
 	}
 
 	screen := lipgloss.JoinVertical(lipgloss.Left,
