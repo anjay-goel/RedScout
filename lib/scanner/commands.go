@@ -306,11 +306,7 @@ func (s *Scanner) FetchKeyValue(key string) error {
 		val, err := s.redis.Get(ctx, key).Result()
 		if err == nil {
 			info.Length = int64(len(val))
-			if len(val) > 1024 {
-				info.Value = val[:1024] + "... (truncated)"
-			} else {
-				info.Value = val
-			}
+			info.Value = val
 		}
 	case "list":
 		length, err := s.redis.LLen(ctx, key).Result()
