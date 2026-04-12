@@ -21,6 +21,7 @@ type Config struct {
 	LogsDir         string
 	TopK            int64
 	IDPatterns      []*regexp.Regexp
+	InferKeys       bool
 }
 
 func DefaultConfig() Config {

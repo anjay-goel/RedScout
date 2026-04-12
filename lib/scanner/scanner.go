@@ -122,6 +122,14 @@ func (s *Scanner) Start() {
 		return
 	}
 
+	// Set up key inference mode
+	if s.Config.InferKeys {
+		log.Printf("Using auto-infer mode for key parsing")
+		s.kp.SetInferFunc(InferKeyTemplate)
+	} else {
+		log.Printf("Using manual mode: delimiter=%q, %d ID patterns", s.Config.Delimiter, len(s.Config.IDPatterns))
+	}
+
 	s.updateStatus("Computing statistics")
 
 	err = s.FetchSlowLog()

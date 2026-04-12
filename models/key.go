@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const patternPlaceholder = "{id}"
+const PatternPlaceholder = "{id}"
 
 type Key []string
 
@@ -16,7 +16,7 @@ func (k Key) Pop() (Key, error) {
 	}
 
 	if len(k) == 1 {
-		return Key{}, nil // return empty key if only one part exists
+		return Key{}, nil
 	}
 
 	newKey := make(Key, len(k)-1)
@@ -32,16 +32,27 @@ func (k Key) String() string {
 	return strings.Join(k, ":")
 }
 
+// KeyInferFunc parses a raw key string into segments with IDs replaced
+// by {id} and consecutive namespaces merged.
+type KeyInferFunc func(key string) ([]string, string)
+
 type KeyParser struct {
 	delimiter  string
 	idPatterns []*regexp.Regexp
+	inferFunc  KeyInferFunc
 }
 
-func NewKeyParser(Delimiter string, IDPattern []*regexp.Regexp) *KeyParser {
+func NewKeyParser(delimiter string, idPatterns []*regexp.Regexp) *KeyParser {
 	return &KeyParser{
-		delimiter:  Delimiter,
-		idPatterns: IDPattern,
+		delimiter:  delimiter,
+		idPatterns: idPatterns,
 	}
+}
+
+// SetInferFunc enables auto-inference mode. When set, NewKey with
+// inferIds=true will use this function instead of delimiter+regex.
+func (kp *KeyParser) SetInferFunc(fn KeyInferFunc) {
+	kp.inferFunc = fn
 }
 
 func (kp *KeyParser) matchesPattern(part string) bool {
@@ -53,7 +64,19 @@ func (kp *KeyParser) matchesPattern(part string) bool {
 	return false
 }
 
+// NewKey parses a raw Redis key string into segments.
+//
+// When inferIds=true:
+//   - Auto mode (inferFunc set): delegates to the heuristic function
+//   - Manual mode: splits on delimiter, replaces regex-matched segments with {id}
+//
+// When inferIds=false: splits on delimiter only, no ID replacement.
 func (kp *KeyParser) NewKey(s string, inferIds bool) Key {
+	if inferIds && kp.inferFunc != nil {
+		parts, _ := kp.inferFunc(s)
+		return parts
+	}
+
 	if !strings.Contains(s, kp.delimiter) {
 		return []string{s}
 	}
@@ -62,7 +85,7 @@ func (kp *KeyParser) NewKey(s string, inferIds bool) Key {
 	if inferIds {
 		for i, part := range parts {
 			if kp.matchesPattern(part) {
-				parts[i] = patternPlaceholder
+				parts[i] = PatternPlaceholder
 			}
 		}
 	}
@@ -70,17 +93,18 @@ func (kp *KeyParser) NewKey(s string, inferIds bool) Key {
 	return parts
 }
 
+// IsA checks if key k matches the given prefix pattern.
+// {id} in the prefix matches any value at that position.
 func (kp *KeyParser) IsA(k Key, prefix Key) bool {
 	if len(prefix) > len(k) {
 		return false
 	}
 
 	for i := 0; i < len(prefix); i++ {
-		if prefix[i] == patternPlaceholder {
-			if !kp.matchesPattern(k[i]) {
-				return false
-			}
-		} else if k[i] != prefix[i] {
+		if prefix[i] == PatternPlaceholder || k[i] == PatternPlaceholder {
+			continue
+		}
+		if k[i] != prefix[i] {
 			return false
 		}
 	}
@@ -88,6 +112,7 @@ func (kp *KeyParser) IsA(k Key, prefix Key) bool {
 	return true
 }
 
+// Namespace extracts the next namespace segment from a key relative to a prefix.
 func (kp *KeyParser) Namespace(k Key, prefix Key, inferIds bool) (string, error) {
 	if len(k) == 0 {
 		return "", fmt.Errorf("key is empty")
@@ -105,20 +130,13 @@ func (kp *KeyParser) Namespace(k Key, prefix Key, inferIds bool) (string, error)
 		return "", fmt.Errorf("key %s is exactly the same as prefix %s", strings.Join(k, ":"), strings.Join(prefix, ":"))
 	}
 
-	namespace := k[len(prefix)]
-
-	if inferIds && kp.matchesPattern(namespace) {
-		namespace = patternPlaceholder
-	}
-	return namespace, nil
+	return k[len(prefix)], nil
 }
 
+// Append adds a segment to a key.
 func (kp *KeyParser) Append(k Key, part string, inferIds bool) (Key, error) {
 	if part == "" {
 		return k, fmt.Errorf("key is empty")
-	}
-	if inferIds && kp.matchesPattern(part) {
-		part = patternPlaceholder
 	}
 
 	if len(k) == 0 {
