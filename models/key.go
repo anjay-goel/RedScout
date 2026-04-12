@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 const patternPlaceholder = "{id}"
@@ -44,13 +45,94 @@ func NewKeyParser(Delimiter string, IDPattern []*regexp.Regexp) *KeyParser {
 	}
 }
 
-func (kp *KeyParser) matchesPattern(part string) bool {
-	for _, regex := range kp.idPatterns {
-		if regex.MatchString(part) {
-			return true
+// IsID determines if a key segment looks like an identifier using heuristics.
+//
+// Rules (staged by length — longer segments need weaker signals):
+//
+//	UUID (36 chars, 8-4-4-4-12 hex)       → always ID
+//	Pure numeric (any length)              → always ID
+//	>= 6 chars with >= 50% digits         → ID
+//	8-11 chars with mixed case + digits    → ID
+//	8-11 chars with >= 40% digits          → ID
+//	12-19 chars with mixed case + digits   → ID
+//	12-19 chars with >= 30% digits         → ID
+//	20+ chars with any digit               → ID
+func IsID(segment string) bool {
+	if len(segment) == 36 && segment[8] == '-' && segment[13] == '-' && segment[18] == '-' && segment[23] == '-' {
+		return true
+	}
+
+	upper := 0
+	lower := 0
+	digits := 0
+	for _, r := range segment {
+		switch {
+		case unicode.IsUpper(r):
+			upper++
+		case unicode.IsLower(r):
+			lower++
+		case unicode.IsDigit(r):
+			digits++
 		}
 	}
-	return false
+
+	if digits > 0 && digits == len(segment) {
+		return true
+	}
+
+	total := upper + lower + digits
+	if total == 0 {
+		return false
+	}
+
+	hasMixedCase := upper > 0 && lower > 0
+
+	// 20+ chars: any digit OR mixed case → ID
+	if len(segment) >= 20 {
+		return digits > 0 || hasMixedCase
+	}
+
+	// 16-19 chars: mixed case alone is suspicious enough
+	// e.g., "SHOgPULACeRqGfhcBNV" — clearly not a word
+	if len(segment) >= 16 && hasMixedCase {
+		return true
+	}
+
+	// Below here, require digits
+	if digits == 0 {
+		return false
+	}
+
+	digitRatio := float64(digits) / float64(total)
+
+	// 6+ chars with >= 50% digits
+	if len(segment) >= 6 && digitRatio >= 0.5 {
+		return true
+	}
+
+	if len(segment) < 8 {
+		return false
+	}
+
+	// 12-15 chars: mixed case + digits, or >= 30% digits
+	if len(segment) >= 12 {
+		return (hasMixedCase && digits > 0) || digitRatio >= 0.3
+	}
+
+	// 8-11 chars: mixed case + digits, or >= 40% digits
+	return (hasMixedCase && digits > 0) || digitRatio >= 0.4
+}
+
+func (kp *KeyParser) matchesPattern(part string) bool {
+	if len(kp.idPatterns) > 0 {
+		for _, regex := range kp.idPatterns {
+			if regex.MatchString(part) {
+				return true
+			}
+		}
+		return false
+	}
+	return IsID(part)
 }
 
 func (kp *KeyParser) NewKey(s string, inferIds bool) Key {

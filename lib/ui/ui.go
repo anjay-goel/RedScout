@@ -318,7 +318,16 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 	case tcell.KeyBackspace, tcell.KeyBackspace2, tcell.KeyLeft:
 		if ui.body.IsShowingValue() {
 			ui.scanner.State.KeyValue = nil
-			ui.body.SetActiveView(ui.body.ActiveView()) // re-render current tab
+			// Go back from key value view — level up past empty levels
+			if ui.body.ActiveView() == "namespace" {
+				for !ui.scanner.State.CurrentPrefix.IsEmpty() {
+					ui.scanner.LevelUpNamespace()
+					if len(ui.scanner.State.NamespaceStats) > 0 {
+						break
+					}
+				}
+			}
+			ui.body.SetActiveView(ui.body.ActiveView())
 			return nil
 		}
 		if ui.body.ActiveView() == "namespace" {
