@@ -40,7 +40,7 @@ Download the appropriate binary for your platform from the releases page.
 
 | Flag    | Type   | Default   | Description                                              |
 |---------|--------|-----------|----------------------------------------------------------|
-| `-h`    | string | _(empty)_ | Redis host address                                       |
+| `-h`    | string | `localhost` | Redis host address                                       |
 | `-p`    | int    | `6379`    | Redis port number                                        |
 | `-u`    | string | `default` | Redis username for authentication                        |
 | `-a`    | string | _(empty)_ | Redis password for authentication                        |
@@ -62,6 +62,23 @@ Download the appropriate binary for your platform from the releases page.
 | Flag          | Type   | Default         | Description                                |
 |---------------|--------|-----------------|--------------------------------------------|
 | `--logs-dir`  | string | _OS's temp dir_ | Directory to store temporary analysis logs |
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `N` | Switch to Namespaces tab |
+| `L` | Switch to Slow Log tab |
+| `B` | Switch to Big Keys tab |
+| `H` | Switch to Hot Keys tab |
+| `T` | Cycle to next tab |
+| `S` | Run additional SCAN (accumulates data) |
+| `M` | Run additional MONITOR (accumulates data) |
+| `1-8` | Sort current table by column |
+| `→` / `Enter` | Drill down into namespace |
+| `←` / `Backspace` | Navigate back up |
+| `?` | Show/hide keyboard shortcut overlay |
+| `Q` | Quit |
 
 ## Notes
 

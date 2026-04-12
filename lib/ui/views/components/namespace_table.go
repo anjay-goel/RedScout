@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"redscout/lib/ui/theme"
 	"redscout/lib/utils"
 	"redscout/models"
 	"strings"
@@ -9,8 +10,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
-
-const StatsHeader = "[yellow]Sort:[-] [yellow]1[-] Keys  [yellow]2[-] Memory  [yellow]3[-] Avg TTL  [yellow]4[-] % TTL  [yellow]5[-] GET  [yellow]6[-] SET  [yellow]7[-] DEL  [yellow]8[-] OPS  |  [yellow]Enter/→[-] Drill Down  [yellow]Backspace/←[-] Level Up  |  [yellow]S[-] +SCAN  |  [yellow]M[-] +MONITOR |  [yellow]T[-] Toggle View  |  [yellow]Q[-] Quit"
 
 type Namespace struct {
 	Title *tview.TextView
@@ -21,57 +20,57 @@ type Namespace struct {
 func NewNamespace() *Namespace {
 	ns := &Namespace{}
 	ns.Table = tview.NewTable().SetFixed(1, 0)
-	ns.Table.SetTitle(" Namespace Stats (Press 1-8 to sort) ").SetTitleAlign(tview.AlignLeft)
 	ns.Table.SetSelectable(true, false)
 	ns.Table.SetBorders(false)
+	ns.Table.SetBorderPadding(0, 0, 1, 0)
+	ns.Table.SetBackgroundColor(theme.ColorBg)
+	ns.Table.SetSelectedStyle(tcell.StyleDefault.
+		Background(theme.ColorBorder).
+		Foreground(theme.ColorText))
 
 	ns.Title = tview.NewTextView()
 	ns.Title.SetDynamicColors(true)
-	ns.Title.SetText("[yellow:black]/ root[-]")
+	ns.Title.SetBackgroundColor(theme.ColorBg)
+	ns.Title.SetText(" [#f0883e]/ root[-]")
 
 	ns.Flex = tview.NewFlex()
 	ns.Flex.SetDirection(tview.FlexRow)
-	ns.Flex.SetBorderPadding(0, 0, 1, 0)
-	ns.Flex.AddItem(ns.Title, 1, -1, false)
+	ns.Flex.SetBackgroundColor(theme.ColorBg)
+	ns.Flex.SetBorderPadding(0, 0, 0, 0)
+	ns.Flex.AddItem(ns.Title, 2, -1, false)
 	ns.Flex.AddItem(ns.Table, 0, 1, true)
 
 	return ns
 }
 
 func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList) {
-	headers := []string{"Namespace", "~Keys", "~Memory", "Avg TTL", "% TTL", "GET/s", "SET/s", "DEL/s", "Total Ops/s", "Types"}
-	colors := []tcell.Color{
-		tcell.ColorWhite,
-		tcell.ColorYellow,
-		tcell.ColorAqua,
-		tcell.ColorLightGreen,
-		tcell.ColorLightCyan,
-		tcell.ColorBlue,
-		tcell.ColorGreen,
-		tcell.ColorRed,
-		tcell.ColorPurple,
-		tcell.ColorGray,
+	headers := []string{
+		"[#8b949e]Namespace[-]",
+		"[#8b949e]~Keys [#484f58][[-][#f0883e]1[-][#484f58]][-]",
+		"[#8b949e]~Memory [#484f58][[-][#f0883e]2[-][#484f58]][-]",
+		"[#8b949e]Avg TTL [#484f58][[-][#f0883e]3[-][#484f58]][-]",
+		"[#8b949e]% TTL [#484f58][[-][#f0883e]4[-][#484f58]][-]",
+		"[#8b949e]GET/s [#484f58][[-][#f0883e]5[-][#484f58]][-]",
+		"[#8b949e]SET/s [#484f58][[-][#f0883e]6[-][#484f58]][-]",
+		"[#8b949e]DEL/s [#484f58][[-][#f0883e]7[-][#484f58]][-]",
+		"[#8b949e]OPS/s [#484f58][[-][#f0883e]8[-][#484f58]][-]",
+		"[#8b949e]Types[-]",
 	}
 
-	// Add header row
 	ns.Table.Clear()
 	for i, h := range headers {
 		align := tview.AlignLeft
-		if i != 0 && i != (len(headers)-1) {
+		if i != 0 && i != len(headers)-1 {
 			align = tview.AlignRight
 		}
-		cell := tview.NewTableCell(fmt.Sprintf("[white::b]%s", h)).
-			SetTextColor(tcell.ColorWhite).
-			SetAttributes(tcell.AttrBold).
-			SetBackgroundColor(tcell.ColorTeal).
+		cell := tview.NewTableCell(h).
+			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
 			SetAlign(align)
 		ns.Table.SetCell(0, i, cell)
 	}
 
-	// Pad namespace to fixed width to prevent layout shift
 	nsPad := utils.MaxKeyDisplayLen
-	// Add data rows
 	for i, row := range stats {
 		nsVal := utils.TruncateKey(row.Namespace)
 		values := []string{
@@ -84,18 +83,37 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 			fmt.Sprintf("%10.1f/s", row.Ops[models.SetOp]),
 			fmt.Sprintf("%10.1f/s", row.Ops[models.DelOp]),
 			fmt.Sprintf("%10.1f/s", row.Ops[models.TotalOp]),
-			fmt.Sprintf("%-12s", strings.Join(row.Types[:], ",")),
+			strings.Join(row.Types, ","),
+		}
+
+		colors := []tcell.Color{
+			theme.ColorText,
+			theme.ColorOrange,
+			theme.ColorBlue,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorMuted,
+		}
+
+		rowBg := theme.ColorBg
+		if i%2 == 1 {
+			rowBg = theme.ColorSurface
 		}
 
 		for j, val := range values {
 			align := tview.AlignLeft
-			if j != 0 && j != (len(headers)-1) {
+			if j != 0 && j != len(values)-1 {
 				align = tview.AlignRight
 			}
-			cell := tview.NewTableCell(fmt.Sprintf("[%s]%s", colors[j], val)).
+			cell := tview.NewTableCell(val).
+				SetTextColor(colors[j]).
 				SetAlign(align).
 				SetExpansion(0).
-				SetBackgroundColor(tcell.ColorBlack)
+				SetBackgroundColor(rowBg)
 
 			ns.Table.SetCell(i+1, j, cell)
 		}
@@ -103,10 +121,14 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 
 	ns.Table.SetFixed(1, 0)
 	ns.Table.ScrollToBeginning()
+
 	separator := " › "
+	hints := "  [#484f58]([[-][#f0883e]→[-][#484f58]][-] [#484f58]expand  [[-][#f0883e]←[-][#484f58]][-] [#484f58]back)[-]"
+	line := "\n[#484f58]" + strings.Repeat("─", 300) + "[-]"
 	if len(prefix) == 0 {
-		ns.Title.SetText("[yellow:black]/ root[-]")
+		ns.Title.SetText(" [#f0883e]/ root[-]" + hints + line)
 	} else {
-		ns.Title.SetText(fmt.Sprintf("[yellow:black]%s[-]", "/ root"+separator+strings.Join(prefix, separator)))
+		path := "/ root" + separator + strings.Join(prefix, separator)
+		ns.Title.SetText(fmt.Sprintf(" [#f0883e]%s[-]%s%s", path, hints, line))
 	}
 }

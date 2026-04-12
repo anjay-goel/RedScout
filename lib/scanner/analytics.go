@@ -177,7 +177,9 @@ func (s *Scanner) ComputeBigKeysFromScanLog() error {
 		if err != nil {
 			continue
 		}
-		bk := models.BigKey{Key: key, Size: memory}
+		ttl, _ := strconv.ParseInt(parts[2], 10, 64)
+		keyType := parts[3]
+		bk := models.BigKey{Key: key, Size: memory, Type: keyType, TTL: ttl}
 		if int64(h.Len()) < s.Config.TopK {
 			heap.Push(h, bk)
 		} else if h.Len() > 0 && (*h)[0].Size < memory {
@@ -208,7 +210,12 @@ func (s *Scanner) ComputeHotKeysFromMonitorLog() error {
 	}
 	scanner := bufio.NewScanner(s.monitorFile)
 
-	keyOps := make(map[string]int64)
+	type keyStats struct {
+		ops      int64
+		commands map[string]int64
+	}
+
+	keyData := make(map[string]*keyStats)
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Fields(line)
@@ -216,7 +223,15 @@ func (s *Scanner) ComputeHotKeysFromMonitorLog() error {
 			continue
 		}
 		keyStr := parts[0]
-		keyOps[keyStr]++
+		cmd := parts[1]
+
+		stats, exists := keyData[keyStr]
+		if !exists {
+			stats = &keyStats{commands: make(map[string]int64)}
+			keyData[keyStr] = stats
+		}
+		stats.ops++
+		stats.commands[cmd]++
 	}
 	if err := scanner.Err(); err != nil {
 		return err
@@ -224,14 +239,28 @@ func (s *Scanner) ComputeHotKeysFromMonitorLog() error {
 
 	duration := s.State.TotalMonitorDuration.Seconds()
 	if duration == 0 {
-		duration = 1 // fallback to avoid division by zero
+		duration = 1
 	}
 
 	h := &models.HotKeyMinHeap{}
 	heap.Init(h)
-	for k, ops := range keyOps {
-		opsPerSec := float64(ops) / duration
-		hk := models.HotKey{Key: s.kp.NewKey(k, false), Ops: opsPerSec}
+	for k, stats := range keyData {
+		opsPerSec := float64(stats.ops) / duration
+
+		topCmd := ""
+		topCmdCount := int64(0)
+		for cmd, count := range stats.commands {
+			if count > topCmdCount {
+				topCmd = cmd
+				topCmdCount = count
+			}
+		}
+
+		hk := models.HotKey{
+			Key:     s.kp.NewKey(k, false),
+			Ops:     opsPerSec,
+			Command: strings.ToUpper(topCmd),
+		}
 		if int64(h.Len()) < s.Config.TopK {
 			heap.Push(h, hk)
 		} else if h.Len() > 0 && (*h)[0].Ops < opsPerSec {
@@ -239,7 +268,6 @@ func (s *Scanner) ComputeHotKeysFromMonitorLog() error {
 			heap.Push(h, hk)
 		}
 	}
-	// Extract from heap to slice, largest first
 	result := make(models.HotKeyList, h.Len())
 	for i := len(result) - 1; i >= 0; i-- {
 		result[i] = heap.Pop(h).(models.HotKey)

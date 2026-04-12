@@ -13,28 +13,14 @@ func CreateProgressBar(value, max float64, width int) string {
 	filled := int((value / max) * float64(width))
 	empty := width - filled
 
-	// Choose color based on value
-	var color string
-	switch {
-	case value >= 90:
-		color = "red"
-	case value >= 70:
-		color = "orange"
-	case value >= 50:
-		color = "yellow"
-	case value >= 30:
-		color = "lightgreen"
-	default:
-		color = "green"
-	}
-
-	bar := fmt.Sprintf("[%s][", color)
+	bar := "[#f0883e]"
 	for i := 0; i < filled; i++ {
-		bar += "|"
+		bar += "█"
 	}
+	bar += "[#21262d]"
 	for i := 0; i < empty; i++ {
-		bar += " "
+		bar += "░"
 	}
-	bar += fmt.Sprintf("] %.1f%%[-]", value)
+	bar += fmt.Sprintf("[-] [#8b949e]%.1f%%[-]", value)
 	return bar
 }

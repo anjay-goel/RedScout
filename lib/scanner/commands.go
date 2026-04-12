@@ -204,7 +204,7 @@ func (s *Scanner) MonitorOps() error {
 				continue
 			}
 			cmd := strings.ToLower(parts[1])
-			if cmd == "eval" {
+			if cmd == "eval" || cmd == "evalsha" {
 				continue
 			}
 
