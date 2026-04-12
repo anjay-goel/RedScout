@@ -252,6 +252,7 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 			err := ui.scanner.ScanMemory()
 			if err == nil {
 				_ = ui.scanner.ComputeNamespaceStats()
+				_ = ui.scanner.ComputeBigKeysFromScanLog()
 			}
 		}()
 	case 'm', 'M':
@@ -259,6 +260,7 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 			err := ui.scanner.MonitorOps()
 			if err == nil {
 				_ = ui.scanner.ComputeNamespaceStats()
+				_ = ui.scanner.ComputeHotKeysFromMonitorLog()
 			}
 		}()
 	default:
