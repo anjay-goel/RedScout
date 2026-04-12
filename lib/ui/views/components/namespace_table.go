@@ -110,10 +110,11 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 	ns.Table.ScrollToBeginning()
 
 	separator := " › "
+	hints := "  [#484f58]([#f0883e]→[-] expand  [#f0883e]←[-] back)[-]"
 	if len(prefix) == 0 {
-		ns.Title.SetText(" [#f0883e]/ root[-]                                                          [#f0883e]→[-] [#484f58]drill[-]  [#f0883e]←[-] [#484f58]back[-]")
+		ns.Title.SetText(" [#f0883e]/ root[-]" + hints)
 	} else {
 		path := "/ root" + separator + strings.Join(prefix, separator)
-		ns.Title.SetText(fmt.Sprintf(" [#f0883e]%s[-]                                                          [#f0883e]→[-] [#484f58]drill[-]  [#f0883e]←[-] [#484f58]back[-]", path))
+		ns.Title.SetText(fmt.Sprintf(" [#f0883e]%s[-]%s", path, hints))
 	}
 }
