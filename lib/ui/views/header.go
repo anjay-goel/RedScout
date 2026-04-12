@@ -90,7 +90,7 @@ func (header *HeaderView) updateHeaderResourcesView(info *models.RedisInfo) {
 		memPercent := float64(info.Memory.UsedMemory) / float64(info.Memory.MaxMemory) * 100
 		memBar = components.CreateProgressBar(memPercent, 100, 20)
 	} else {
-		memBar = fmt.Sprintf("%s (no limit)", info.Memory.UsedMemoryHuman)
+		memBar = fmt.Sprintf("%s", info.Memory.UsedMemoryHuman)
 	}
 
 	maxMemDisplay := info.Memory.MaxMemoryHuman

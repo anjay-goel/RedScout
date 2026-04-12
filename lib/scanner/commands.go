@@ -79,12 +79,13 @@ func (s *Scanner) scanKeys() ([]string, error) {
 		collected = append(collected, res...)
 		scanned += int64(len(res))
 		s.State.Cursor = next
+		s.State.ScannedKeys += int64(len(res))
+		s.State.ScanProgress = min(float64(scanned)/float64(s.Config.KeysScanSize)*50, 50)
+		s.State.Updates <- s.State
 		if next == 0 || scanned >= s.Config.KeysScanSize {
 			break
 		}
 	}
-
-	s.State.ScannedKeys += scanned
 	return collected, nil
 }
 
@@ -104,11 +105,15 @@ func (s *Scanner) ScanMemory() error {
 	log.Printf("Memory scan started")
 
 	s.State.TotalKeysToScan = s.Config.KeysScanSize
+	s.updateStatus("Collecting keys")
 
 	keys, err := s.scanKeys()
 	if err != nil {
 		return err
 	}
+
+	s.State.TotalKeysToScan = int64(len(keys))
+	s.updateStatus("Scanning memory")
 
 	if _, err := s.scanFile.Seek(0, io.SeekEnd); err != nil {
 		return fmt.Errorf("failed to seek scan file: %w", err)
@@ -142,7 +147,7 @@ func (s *Scanner) ScanMemory() error {
 		}
 
 		processedKeys += int64(len(keyBatch))
-		s.State.ScanProgress = min(float64(s.State.ScannedKeys)/float64(s.Config.KeysScanSize)*100, 100)
+		s.State.ScanProgress = 50 + min(float64(processedKeys)/float64(len(keys))*50, 49)
 		s.State.Updates <- s.State
 	}
 
