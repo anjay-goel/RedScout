@@ -6,11 +6,10 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"redscout/lib/ui/theme"
 	"redscout/lib/utils"
 	"redscout/models"
 )
-
-const SlowLogHeader = "[yellow]Sort:[-] [yellow]1[-] ID  [yellow]2[-] Timestamp  [yellow]3[-] Duration  [yellow]4[-] Command  |  [yellow]S[-] +SCAN  |  [yellow]M[-] +MONITOR |  [yellow]T[-] Toggle View  |  [yellow]Q[-] Quit"
 
 type SlowLogTable struct {
 	Table *tview.Table
@@ -18,49 +17,38 @@ type SlowLogTable struct {
 
 func NewSlowLogTable() *SlowLogTable {
 	table := tview.NewTable().SetFixed(1, 0)
-	table.SetTitle(" Slow Log (Press 1-5 to sort) ").SetTitleAlign(tview.AlignLeft)
 	table.SetSelectable(true, false)
 	table.SetBorders(false)
 	table.SetBorderPadding(0, 0, 1, 0)
+	table.SetBackgroundColor(theme.ColorBg)
+	table.SetSelectedStyle(tcell.StyleDefault.
+		Background(theme.ColorBorder).
+		Foreground(theme.ColorText))
 	return &SlowLogTable{table}
 }
 
 func (sl *SlowLogTable) Update(slowLogs models.SlowLogList) {
-	if slowLogs == nil || len(slowLogs) == 0 {
+	if len(slowLogs) == 0 {
 		return
 	}
 
-	headers := []string{"ID", "Timestamp", "Duration", "Command", "Arguments"}
-	colors := []tcell.Color{
-		tcell.ColorWhite,
-		tcell.ColorYellow,
-		tcell.ColorTeal,
-		tcell.ColorLightGreen,
-		tcell.ColorBlue,
-	}
+	headers := []string{"ID 1", "Timestamp 2", "Duration 3", "Command 4", "Arguments"}
 
-	// Set minimum column widths
-	colWidths := []int{8, 20, 12, 12, 30}
-
-	// Add header row
 	sl.Table.Clear()
 	for i, h := range headers {
 		align := tview.AlignLeft
-		if i != 0 && i != 4 {
+		if i == 0 || i == 2 {
 			align = tview.AlignRight
 		}
-		cell := tview.NewTableCell(fmt.Sprintf("[white::b]%s", h)).
-			SetTextColor(tcell.ColorWhite).
-			SetAttributes(tcell.AttrBold).
-			SetBackgroundColor(tcell.ColorTeal).
+		cell := tview.NewTableCell(h).
+			SetTextColor(theme.ColorSecondary).
+			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
 			SetAlign(align)
 		sl.Table.SetCell(0, i, cell)
 	}
 
-	// Add data rows
 	for i, log := range slowLogs {
-		// Split command and arguments
 		command := ""
 		var args []string
 		if len(log.Args) > 0 {
@@ -76,37 +64,32 @@ func (sl *SlowLogTable) Update(slowLogs models.SlowLogList) {
 			utils.TruncateKey(strings.Join(args, " ")),
 		}
 
-		// Update max widths based on content
-		for j, val := range values {
-			contentWidth := len(val)
-			if contentWidth > colWidths[j] {
-				colWidths[j] = contentWidth
-			}
+		colors := []tcell.Color{
+			theme.ColorText,
+			theme.ColorSecondary,
+			theme.ColorOrange,
+			theme.ColorGreen,
+			theme.ColorMuted,
+		}
+
+		rowBg := theme.ColorBg
+		if i%2 == 1 {
+			rowBg = theme.ColorSurface
 		}
 
 		for j, val := range values {
 			align := tview.AlignLeft
-			if j != 0 && j != 4 {
+			if j == 0 || j == 2 {
 				align = tview.AlignRight
 			}
-			cell := tview.NewTableCell(fmt.Sprintf("[%s]%s", colors[j], val)).
+			cell := tview.NewTableCell(val).
+				SetTextColor(colors[j]).
 				SetAlign(align).
 				SetExpansion(0).
-				SetBackgroundColor(tcell.ColorBlack)
-
+				SetBackgroundColor(rowBg)
 			sl.Table.SetCell(i+1, j, cell)
 		}
 	}
 
-	// Set column widths with padding
-	totalWidth := 0
-	for i, width := range colWidths {
-		width += 2 // Add padding
-		sl.Table.SetCell(0, i, sl.Table.GetCell(0, i).SetExpansion(0))
-		sl.Table.SetCell(0, i, sl.Table.GetCell(0, i).SetMaxWidth(width))
-		totalWidth += width
-	}
-
-	// Set table width to total width of columns
 	sl.Table.SetFixed(1, 0)
 }

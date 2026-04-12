@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"redscout/lib/ui/theme"
 	"redscout/lib/utils"
 	"redscout/models"
 	"strings"
@@ -9,8 +10,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
-
-const StatsHeader = "[yellow]Sort:[-] [yellow]1[-] Keys  [yellow]2[-] Memory  [yellow]3[-] Avg TTL  [yellow]4[-] % TTL  [yellow]5[-] GET  [yellow]6[-] SET  [yellow]7[-] DEL  [yellow]8[-] OPS  |  [yellow]Enter/→[-] Drill Down  [yellow]Backspace/←[-] Level Up  |  [yellow]S[-] +SCAN  |  [yellow]M[-] +MONITOR |  [yellow]T[-] Toggle View  |  [yellow]Q[-] Quit"
 
 type Namespace struct {
 	Title *tview.TextView
@@ -21,17 +20,22 @@ type Namespace struct {
 func NewNamespace() *Namespace {
 	ns := &Namespace{}
 	ns.Table = tview.NewTable().SetFixed(1, 0)
-	ns.Table.SetTitle(" Namespace Stats (Press 1-8 to sort) ").SetTitleAlign(tview.AlignLeft)
 	ns.Table.SetSelectable(true, false)
 	ns.Table.SetBorders(false)
+	ns.Table.SetBackgroundColor(theme.ColorBg)
+	ns.Table.SetSelectedStyle(tcell.StyleDefault.
+		Background(theme.ColorBorder).
+		Foreground(theme.ColorText))
 
 	ns.Title = tview.NewTextView()
 	ns.Title.SetDynamicColors(true)
-	ns.Title.SetText("[yellow:black]/ root[-]")
+	ns.Title.SetBackgroundColor(theme.ColorBg)
+	ns.Title.SetText(" [#f0883e]/ root[-]")
 
 	ns.Flex = tview.NewFlex()
 	ns.Flex.SetDirection(tview.FlexRow)
-	ns.Flex.SetBorderPadding(0, 0, 1, 0)
+	ns.Flex.SetBackgroundColor(theme.ColorBg)
+	ns.Flex.SetBorderPadding(0, 0, 0, 0)
 	ns.Flex.AddItem(ns.Title, 1, -1, false)
 	ns.Flex.AddItem(ns.Table, 0, 1, true)
 
@@ -39,39 +43,23 @@ func NewNamespace() *Namespace {
 }
 
 func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList) {
-	headers := []string{"Namespace", "~Keys", "~Memory", "Avg TTL", "% TTL", "GET/s", "SET/s", "DEL/s", "Total Ops/s", "Types"}
-	colors := []tcell.Color{
-		tcell.ColorWhite,
-		tcell.ColorYellow,
-		tcell.ColorAqua,
-		tcell.ColorLightGreen,
-		tcell.ColorLightCyan,
-		tcell.ColorBlue,
-		tcell.ColorGreen,
-		tcell.ColorRed,
-		tcell.ColorPurple,
-		tcell.ColorGray,
-	}
+	headers := []string{"Namespace", "~Keys 1", "~Memory 2", "Avg TTL 3", "% TTL 4", "GET/s 5", "SET/s 6", "DEL/s 7", "OPS/s 8"}
 
-	// Add header row
 	ns.Table.Clear()
 	for i, h := range headers {
 		align := tview.AlignLeft
-		if i != 0 && i != (len(headers)-1) {
+		if i != 0 {
 			align = tview.AlignRight
 		}
-		cell := tview.NewTableCell(fmt.Sprintf("[white::b]%s", h)).
-			SetTextColor(tcell.ColorWhite).
-			SetAttributes(tcell.AttrBold).
-			SetBackgroundColor(tcell.ColorTeal).
+		cell := tview.NewTableCell(h).
+			SetTextColor(theme.ColorSecondary).
+			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
 			SetAlign(align)
 		ns.Table.SetCell(0, i, cell)
 	}
 
-	// Pad namespace to fixed width to prevent layout shift
 	nsPad := utils.MaxKeyDisplayLen
-	// Add data rows
 	for i, row := range stats {
 		nsVal := utils.TruncateKey(row.Namespace)
 		values := []string{
@@ -84,18 +72,35 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 			fmt.Sprintf("%10.1f/s", row.Ops[models.SetOp]),
 			fmt.Sprintf("%10.1f/s", row.Ops[models.DelOp]),
 			fmt.Sprintf("%10.1f/s", row.Ops[models.TotalOp]),
-			fmt.Sprintf("%-12s", strings.Join(row.Types[:], ",")),
+		}
+
+		colors := []tcell.Color{
+			theme.ColorText,
+			theme.ColorOrange,
+			theme.ColorBlue,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+			theme.ColorSecondary,
+		}
+
+		rowBg := theme.ColorBg
+		if i%2 == 1 {
+			rowBg = theme.ColorSurface
 		}
 
 		for j, val := range values {
 			align := tview.AlignLeft
-			if j != 0 && j != (len(headers)-1) {
+			if j != 0 {
 				align = tview.AlignRight
 			}
-			cell := tview.NewTableCell(fmt.Sprintf("[%s]%s", colors[j], val)).
+			cell := tview.NewTableCell(val).
+				SetTextColor(colors[j]).
 				SetAlign(align).
 				SetExpansion(0).
-				SetBackgroundColor(tcell.ColorBlack)
+				SetBackgroundColor(rowBg)
 
 			ns.Table.SetCell(i+1, j, cell)
 		}
@@ -103,10 +108,12 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 
 	ns.Table.SetFixed(1, 0)
 	ns.Table.ScrollToBeginning()
+
 	separator := " › "
 	if len(prefix) == 0 {
-		ns.Title.SetText("[yellow:black]/ root[-]")
+		ns.Title.SetText(" [#f0883e]/ root[-]                                                          [#f0883e]→[-] [#484f58]drill[-]  [#f0883e]←[-] [#484f58]back[-]")
 	} else {
-		ns.Title.SetText(fmt.Sprintf("[yellow:black]%s[-]", "/ root"+separator+strings.Join(prefix, separator)))
+		path := "/ root" + separator + strings.Join(prefix, separator)
+		ns.Title.SetText(fmt.Sprintf(" [#f0883e]%s[-]                                                          [#f0883e]→[-] [#484f58]drill[-]  [#f0883e]←[-] [#484f58]back[-]", path))
 	}
 }

@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"redscout/lib/ui/theme"
 	"redscout/lib/utils"
 	"redscout/models"
 
@@ -9,32 +10,32 @@ import (
 	"github.com/rivo/tview"
 )
 
-const HotKeysShortcutsText = "[yellow]S[-] +SCAN  |  [yellow]M[-] +MONITOR  |  [yellow]Q[-] Quit"
-
 func NewHotKeyTable() *tview.Table {
 	table := tview.NewTable().SetFixed(1, 0)
-	table.SetTitle(" Hot Keys (Top N by Ops) ").SetTitleAlign(tview.AlignLeft)
 	table.SetSelectable(true, false)
 	table.SetBorders(false)
 	table.SetBorderPadding(0, 0, 1, 0)
+	table.SetBackgroundColor(theme.ColorBg)
+	table.SetSelectedStyle(tcell.StyleDefault.
+		Background(theme.ColorBorder).
+		Foreground(theme.ColorText))
 	return table
 }
 
 func UpdateHotKeyTable(table *tview.Table, hotKeys models.HotKeyList) {
-	headers := []string{"Key", "Ops"}
-	colors := []tcell.Color{
-		tcell.ColorWhite,
-		tcell.ColorAqua,
-	}
+	headers := []string{"Key", "Ops/s 1", "Command 2"}
 
 	table.Clear()
 	for i, h := range headers {
-		cell := tview.NewTableCell(fmt.Sprintf("[white::b]%s", h)).
-			SetTextColor(tcell.ColorWhite).
-			SetAttributes(tcell.AttrBold).
-			SetBackgroundColor(tcell.ColorAqua).
+		align := tview.AlignLeft
+		if i == 1 {
+			align = tview.AlignRight
+		}
+		cell := tview.NewTableCell(h).
+			SetTextColor(theme.ColorSecondary).
+			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
-			SetAlign(tview.AlignLeft)
+			SetAlign(align)
 		table.SetCell(0, i, cell)
 	}
 
@@ -42,12 +43,30 @@ func UpdateHotKeyTable(table *tview.Table, hotKeys models.HotKeyList) {
 		values := []string{
 			fmt.Sprintf("%-*s", utils.MaxKeyDisplayLen, utils.TruncateKey(row.Key.String())),
 			fmt.Sprintf("%10.1f/s", row.Ops),
+			fmt.Sprintf("%-8s", row.Command),
 		}
+
+		colors := []tcell.Color{
+			theme.ColorText,
+			theme.ColorBlue,
+			theme.ColorSecondary,
+		}
+
+		rowBg := theme.ColorBg
+		if i%2 == 1 {
+			rowBg = theme.ColorSurface
+		}
+
 		for j, val := range values {
-			cell := tview.NewTableCell(fmt.Sprintf("[%s]%s", colors[j], val)).
-				SetAlign(tview.AlignLeft).
+			align := tview.AlignLeft
+			if j == 1 {
+				align = tview.AlignRight
+			}
+			cell := tview.NewTableCell(val).
+				SetTextColor(colors[j]).
+				SetAlign(align).
 				SetExpansion(0).
-				SetBackgroundColor(tcell.ColorBlack)
+				SetBackgroundColor(rowBg)
 			table.SetCell(i+1, j, cell)
 		}
 	}
