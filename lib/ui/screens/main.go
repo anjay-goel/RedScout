@@ -1,8 +1,6 @@
 package screens
 
 import (
-	"fmt"
-
 	"charm.land/bubbles/v2/table"
 	"charm.land/lipgloss/v2"
 	tea "charm.land/bubbletea/v2"
@@ -85,14 +83,11 @@ func (m MainModel) View() string {
 	tabBar := components.RenderTabBar(m.ActiveTab, m.Width)
 
 	var content string
-	debug := fmt.Sprintf("[DEBUG] ns=%d bigk=%d hotk=%d slow=%d h=%d w=%d tab=%d tableH=%d",
-		len(m.State.NamespaceStats), len(m.State.BigKeys), len(m.State.HotKeys),
-		len(m.State.SlowLogs), m.Height, m.Width, m.ActiveTab, m.Height-8)
 	if m.ActiveTab == components.TabNamespace {
 		breadcrumb := components.RenderBreadcrumb(m.State.CurrentPrefix, m.Width)
-		content = breadcrumb + "\n" + debug + "\n" + m.Table.View()
+		content = breadcrumb + "\n" + m.Table.View()
 	} else {
-		content = debug + "\n" + m.Table.View()
+		content = m.Table.View()
 	}
 
 	screen := lipgloss.JoinVertical(lipgloss.Left,
