@@ -73,6 +73,7 @@ func newTabBar() *tview.TextView {
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignLeft)
 	tb.SetBackgroundColor(theme.ColorBg)
+	tb.SetBorderPadding(0, 1, 0, 0) // bottom padding acts as separator
 	return tb
 }
 
