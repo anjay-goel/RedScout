@@ -27,8 +27,8 @@ func (t *TitleBar) Update(state *models.State) {
 		utils.FormatDuration(int64(state.TotalMonitorDuration.Seconds())),
 	)
 	statusLog := fmt.Sprintf("[#484f58]LOG › [#8b949e::d]%s[-::-]", state.Status)
-	helpHint := "[#484f58][[-][#f0883e]?[-][#484f58]][-] [#8b949e]help[-]"
-	legend := "[#484f58][[-][#f0883e]orange[-] [#484f58]= shortcut][-]"
+	helpHint := "[#8b949e][[-][#f0883e]?[-][#8b949e]][-] [#8b949e]help[-]"
+	legend := "[#8b949e][[-][#f0883e]orange[-] [#8b949e]= shortcut][-]"
 
 	t.View.SetText(fmt.Sprintf(" [#58a6ff::b]RedScout[-::-]  %s  %s  %s  %s", stats, helpHint, legend, statusLog))
 }
