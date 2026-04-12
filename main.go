@@ -1,23 +1,30 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
-
-	tea "charm.land/bubbletea/v2"
 	"redscout/lib"
 	"redscout/lib/ui"
 )
 
 func main() {
-	config := lib.ParseFlags()
+	log.SetFlags(0)
+	for _, arg := range os.Args {
+		if arg == "--help" {
+			os.Setenv("TVIEW_DISABLE", "1")
+			break
+		}
+	}
 
-	model := ui.NewModel(config)
-	p := tea.NewProgram(model)
+	cfg := lib.ParseFlags()
 
-	if _, err := p.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		log.Fatal(err)
+	// Disable Tview UI if showing help
+	if os.Getenv("TVIEW_DISABLE") == "1" {
+		return
+	}
+
+	app := ui.NewAppUI(cfg)
+	if err := app.Run(); err != nil {
+		log.Printf("Error running application: %v\n", err)
 	}
 }
