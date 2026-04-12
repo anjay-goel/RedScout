@@ -76,19 +76,22 @@ func newTabBar() *tview.TextView {
 	return tb
 }
 
-func tabLabel(key string, name string, active bool) string {
+func tabLabel(name string, highlightIdx int, active bool) string {
+	before := name[:highlightIdx]
+	key := string(name[highlightIdx])
+	after := name[highlightIdx+1:]
 	if active {
-		return fmt.Sprintf("[#f0883e]%s[-] [#58a6ff::b]%s[-::-]", key, name)
+		return fmt.Sprintf("[#58a6ff::b]%s[#f0883e]%s[#58a6ff]%s[-::-]", before, key, after)
 	}
-	return fmt.Sprintf("[#f0883e]%s[-] [#8b949e]%s[-]", key, name)
+	return fmt.Sprintf("[#8b949e]%s[#f0883e]%s[#8b949e]%s[-]", before, key, after)
 }
 
 func (b *BodyView) updateTabBar() {
 	tabs := fmt.Sprintf(" %s  %s  %s  %s",
-		tabLabel("N", "Namespaces", b.activeView == TabNamespace),
-		tabLabel("L", "Slow Log", b.activeView == TabSlowLog),
-		tabLabel("B", "Big Keys", b.activeView == TabBigKeys),
-		tabLabel("H", "Hot Keys", b.activeView == TabHotKeys),
+		tabLabel("Namespaces", 0, b.activeView == TabNamespace),
+		tabLabel("Slow Log", 5, b.activeView == TabSlowLog),
+		tabLabel("Big Keys", 0, b.activeView == TabBigKeys),
+		tabLabel("Hot Keys", 0, b.activeView == TabHotKeys),
 	)
 	b.TabBar.SetText(tabs)
 }
