@@ -1,6 +1,6 @@
 # RedScout - Redis Namespace Monitor
 
-![Screenshot](assets/screenshot.png)
+![Screenshot](assets/screenshot.png?v=2)
 
 RedScout is a Redis monitoring tool that provides namespace-level insights into your Redis database unlike
 traditional tools that focus more on server-level metrics. It breaks down memory usage, key TTLs, and OP/s by logical
