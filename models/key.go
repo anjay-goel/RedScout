@@ -81,12 +81,31 @@ func IsID(segment string) bool {
 	}
 
 	total := upper + lower + digits
-	if total == 0 || digits == 0 {
+	if total == 0 {
+		return false
+	}
+
+	hasMixedCase := upper > 0 && lower > 0
+
+	// 20+ chars: any digit OR mixed case → ID
+	if len(segment) >= 20 {
+		return digits > 0 || hasMixedCase
+	}
+
+	// 16-19 chars: mixed case alone is suspicious enough
+	// e.g., "SHOgPULACeRqGfhcBNV" — clearly not a word
+	if len(segment) >= 16 && hasMixedCase {
+		return true
+	}
+
+	// Below here, require digits
+	if digits == 0 {
 		return false
 	}
 
 	digitRatio := float64(digits) / float64(total)
 
+	// 6+ chars with >= 50% digits
 	if len(segment) >= 6 && digitRatio >= 0.5 {
 		return true
 	}
@@ -95,16 +114,12 @@ func IsID(segment string) bool {
 		return false
 	}
 
-	hasMixedCase := upper > 0 && lower > 0
-
-	if len(segment) >= 20 {
-		return true
-	}
-
+	// 12-15 chars: mixed case + digits, or >= 30% digits
 	if len(segment) >= 12 {
-		return hasMixedCase || digitRatio >= 0.3
+		return (hasMixedCase && digits > 0) || digitRatio >= 0.3
 	}
 
+	// 8-11 chars: mixed case + digits, or >= 40% digits
 	return (hasMixedCase && digits > 0) || digitRatio >= 0.4
 }
 
