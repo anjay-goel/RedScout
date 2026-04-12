@@ -12,9 +12,10 @@ import (
 )
 
 type Namespace struct {
-	Title *tview.TextView
-	Table *tview.Table
-	Flex  *tview.Flex
+	Title      *tview.TextView
+	Table      *tview.Table
+	Flex       *tview.Flex
+	lastPrefix string
 }
 
 func NewNamespace() *Namespace {
@@ -121,8 +122,14 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 	}
 
 	ns.Table.SetFixed(1, 0)
-	ns.Table.ScrollToBeginning()
-	ns.Table.Select(1, 0)
+
+	// Reset selection only when prefix changes (drill-down/back)
+	currentPrefix := strings.Join(prefix, ":")
+	if currentPrefix != ns.lastPrefix {
+		ns.lastPrefix = currentPrefix
+		ns.Table.Select(1, 0)
+		ns.Table.ScrollToBeginning()
+	}
 
 	separator := " › "
 	hints := "  [#484f58]([[-][#f0883e]→[-][#484f58]][-] [#484f58]expand  [[-][#f0883e]←[-][#484f58]][-] [#484f58]back)[-]"
