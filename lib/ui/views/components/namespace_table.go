@@ -45,14 +45,14 @@ func NewNamespace() *Namespace {
 func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList) {
 	headers := []string{
 		"[#8b949e]Namespace[-]",
-		"[#8b949e]~Keys [#f0883e]1[-]",
-		"[#8b949e]~Memory [#f0883e]2[-]",
-		"[#8b949e]Avg TTL [#f0883e]3[-]",
-		"[#8b949e]% TTL [#f0883e]4[-]",
-		"[#8b949e]GET/s [#f0883e]5[-]",
-		"[#8b949e]SET/s [#f0883e]6[-]",
-		"[#8b949e]DEL/s [#f0883e]7[-]",
-		"[#8b949e]OPS/s [#f0883e]8[-]",
+		"[#8b949e]~Keys [#484f58][[-][#f0883e]1[-][#484f58]][-]",
+		"[#8b949e]~Memory [#484f58][[-][#f0883e]2[-][#484f58]][-]",
+		"[#8b949e]Avg TTL [#484f58][[-][#f0883e]3[-][#484f58]][-]",
+		"[#8b949e]% TTL [#484f58][[-][#f0883e]4[-][#484f58]][-]",
+		"[#8b949e]GET/s [#484f58][[-][#f0883e]5[-][#484f58]][-]",
+		"[#8b949e]SET/s [#484f58][[-][#f0883e]6[-][#484f58]][-]",
+		"[#8b949e]DEL/s [#484f58][[-][#f0883e]7[-][#484f58]][-]",
+		"[#8b949e]OPS/s [#484f58][[-][#f0883e]8[-][#484f58]][-]",
 	}
 
 	ns.Table.Clear()
@@ -119,7 +119,7 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 	ns.Table.ScrollToBeginning()
 
 	separator := " › "
-	hints := "  [#484f58]([#f0883e]→[-] expand  [#f0883e]←[-] back)[-]"
+	hints := "  [#484f58]([[-][#f0883e]→[-][#484f58]][-] [#484f58]expand  [[-][#f0883e]←[-][#484f58]][-] [#484f58]back)[-]"
 	if len(prefix) == 0 {
 		ns.Title.SetText(" [#f0883e]/ root[-]" + hints)
 	} else {

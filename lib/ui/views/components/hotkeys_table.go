@@ -25,8 +25,8 @@ func NewHotKeyTable() *tview.Table {
 func UpdateHotKeyTable(table *tview.Table, hotKeys models.HotKeyList) {
 	headers := []string{
 		"[#8b949e]Key[-]",
-		"[#8b949e]Ops/s [#f0883e]1[-]",
-		"[#8b949e]Command [#f0883e]2[-]",
+		"[#8b949e]Ops/s [#484f58][[-][#f0883e]1[-][#484f58]][-]",
+		"[#8b949e]Command [#484f58][[-][#f0883e]2[-][#484f58]][-]",
 	}
 
 	table.Clear()

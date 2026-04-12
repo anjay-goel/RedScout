@@ -27,7 +27,7 @@ func (t *TitleBar) Update(state *models.State) {
 		status = "[#f0883e]⠋[-]"
 	}
 
-	right := fmt.Sprintf("[#8b949e]%d scanned · %s monitored[-] %s  [#f0883e]?[-] [#484f58]help[-]",
+	right := fmt.Sprintf("[#8b949e]%d scanned · %s monitored[-] %s  [#484f58][[-][#f0883e]?[-][#484f58]][-] [#484f58]help[-]",
 		state.ScannedKeys,
 		utils.FormatDuration(int64(state.TotalMonitorDuration.Seconds())),
 		status,

@@ -77,10 +77,11 @@ func newTabBar() *tview.TextView {
 }
 
 func tabLabel(name string, key string, active bool) string {
+	shortcut := fmt.Sprintf("[#484f58][[-][#f0883e]%s[-][#484f58]][-]", key)
 	if active {
-		return fmt.Sprintf("[#58a6ff::b]%s[-::-] [#f0883e]%s[-]", name, key)
+		return fmt.Sprintf("[#58a6ff::b]%s[-::-] %s", name, shortcut)
 	}
-	return fmt.Sprintf("[#8b949e]%s[-] [#f0883e]%s[-]", name, key)
+	return fmt.Sprintf("[#8b949e]%s[-] %s", name, shortcut)
 }
 
 func (b *BodyView) updateTabBar() {

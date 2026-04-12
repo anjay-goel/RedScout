@@ -33,10 +33,10 @@ func (sl *SlowLogTable) Update(slowLogs models.SlowLogList) {
 	}
 
 	headers := []string{
-		"[#8b949e]ID [#f0883e]1[-]",
-		"[#8b949e]Timestamp [#f0883e]2[-]",
-		"[#8b949e]Duration [#f0883e]3[-]",
-		"[#8b949e]Command [#f0883e]4[-]",
+		"[#8b949e]ID [#484f58][[-][#f0883e]1[-][#484f58]][-]",
+		"[#8b949e]Timestamp [#484f58][[-][#f0883e]2[-][#484f58]][-]",
+		"[#8b949e]Duration [#484f58][[-][#f0883e]3[-][#484f58]][-]",
+		"[#8b949e]Command [#484f58][[-][#f0883e]4[-][#484f58]][-]",
 		"[#8b949e]Arguments[-]",
 	}
 
