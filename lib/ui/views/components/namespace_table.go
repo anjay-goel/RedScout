@@ -36,7 +36,7 @@ func NewNamespace() *Namespace {
 	ns.Flex.SetDirection(tview.FlexRow)
 	ns.Flex.SetBackgroundColor(theme.ColorBg)
 	ns.Flex.SetBorderPadding(0, 0, 0, 0)
-	ns.Flex.AddItem(ns.Title, 1, -1, false)
+	ns.Flex.AddItem(ns.Title, 2, -1, false)
 	ns.Flex.AddItem(ns.Table, 0, 1, true)
 
 	return ns
@@ -120,10 +120,11 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 
 	separator := " › "
 	hints := "  [#484f58]([[-][#f0883e]→[-][#484f58]][-] [#484f58]expand  [[-][#f0883e]←[-][#484f58]][-] [#484f58]back)[-]"
+	line := "\n[#484f58]" + strings.Repeat("─", 300) + "[-]"
 	if len(prefix) == 0 {
-		ns.Title.SetText(" [#f0883e]/ root[-]" + hints)
+		ns.Title.SetText(" [#f0883e]/ root[-]" + hints + line)
 	} else {
 		path := "/ root" + separator + strings.Join(prefix, separator)
-		ns.Title.SetText(fmt.Sprintf(" [#f0883e]%s[-]%s", path, hints))
+		ns.Title.SetText(fmt.Sprintf(" [#f0883e]%s[-]%s%s", path, hints, line))
 	}
 }
