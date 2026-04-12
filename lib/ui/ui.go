@@ -189,7 +189,11 @@ func (ui *AppUI) createMainScreen() {
 	flex.AddItem(ui.headers.HeaderFlex, 5, 0, false)
 
 	ui.body.TabBar.SetBorder(false)
-	flex.AddItem(ui.body.TabBar, 2, 0, false)
+	flex.AddItem(ui.body.TabBar, 1, 0, false)
+
+	// Separator line below tabs
+	tabSep := tview.NewBox().SetBackgroundColor(theme.ColorBorder)
+	flex.AddItem(tabSep, 1, 0, false)
 
 	flex.AddItem(ui.body.ContentFlex, 0, 1, true)
 
