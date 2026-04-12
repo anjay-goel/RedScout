@@ -46,7 +46,7 @@ func (s *Scanner) FetchRedisInfo() error {
 		parsed.Computed.HitRate = s.State.RedisInfo.Computed.HitRate
 	}
 
-	if s.State.LastInfoCheck.Second() != 0 {
+	if !s.State.LastInfoCheck.IsZero() {
 		currCPUTime := parsed.CPU.SystemTime + parsed.CPU.UserTime
 		prevCPUTime := s.State.RedisInfo.CPU.UserTime + s.State.RedisInfo.CPU.SystemTime
 		parsed.Computed.CPUUsage = (currCPUTime - prevCPUTime) * 1000 / float64(time.Now().UnixMilli()-s.State.LastInfoCheck.UnixMilli())
@@ -78,10 +78,10 @@ func (s *Scanner) scanKeys() ([]string, error) {
 
 		collected = append(collected, res...)
 		scanned += int64(len(res))
+		s.State.Cursor = next
 		if next == 0 || scanned >= s.Config.KeysScanSize {
 			break
 		}
-		s.State.Cursor = next
 	}
 
 	s.State.ScannedKeys += scanned

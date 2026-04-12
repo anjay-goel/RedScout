@@ -2,10 +2,12 @@ package components
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"redscout/lib/utils"
 	"redscout/models"
-	"strings"
 )
 
 const SlowLogHeader = "[yellow]Sort:[-] [yellow]1[-] ID  [yellow]2[-] Timestamp  [yellow]3[-] Duration  [yellow]4[-] Command  |  [yellow]S[-] +SCAN  |  [yellow]M[-] +MONITOR |  [yellow]T[-] Toggle View  |  [yellow]Q[-] Quit"
@@ -71,7 +73,7 @@ func (sl *SlowLogTable) Update(slowLogs models.SlowLogList) {
 			log.Time.Format("2006-01-02 15:04:05"),
 			fmt.Sprintf("%12d ms", log.Duration.Milliseconds()),
 			command,
-			strings.Join(args, " "),
+			utils.TruncateKey(strings.Join(args, " ")),
 		}
 
 		// Update max widths based on content

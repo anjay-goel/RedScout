@@ -79,7 +79,7 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 	// Add data rows and update max widths
 	for i, row := range stats {
 		values := []string{
-			fmt.Sprintf("%-20s", row.Namespace),
+			fmt.Sprintf("%-20s", utils.TruncateKey(row.Namespace)),
 			fmt.Sprintf("%12s", utils.FormatNumber(float64(row.EstKeys))),
 			fmt.Sprintf("%12s", utils.FormatBytes(row.EstMemory)),
 			fmt.Sprintf("%12s", utils.FormatDuration(row.AvgTTL)),

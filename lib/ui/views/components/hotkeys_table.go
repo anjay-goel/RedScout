@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"redscout/lib/utils"
 	"redscout/models"
 
 	"github.com/gdamore/tcell/v2"
@@ -39,7 +40,7 @@ func UpdateHotKeyTable(table *tview.Table, hotKeys models.HotKeyList) {
 
 	for i, row := range hotKeys {
 		values := []string{
-			row.Key.String(),
+			utils.TruncateKey(row.Key.String()),
 			fmt.Sprintf("%8.1f/s", row.Ops),
 		}
 		for j, val := range values {

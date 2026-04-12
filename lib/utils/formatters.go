@@ -60,3 +60,12 @@ func FormatDuration(seconds int64) string {
 	}
 	return strings.TrimSpace(result)
 }
+
+const MaxKeyDisplayLen = 64
+
+func TruncateKey(key string) string {
+	if len(key) <= MaxKeyDisplayLen {
+		return key
+	}
+	return key[:MaxKeyDisplayLen-3] + "..."
+}

@@ -40,7 +40,7 @@ func UpdateBigKeyTable(table *tview.Table, bigKeys models.BigKeyList) {
 
 	for i, row := range bigKeys {
 		values := []string{
-			row.Key.String(),
+			utils.TruncateKey(row.Key.String()),
 			fmt.Sprintf("%12s", utils.FormatBytes(row.Size)),
 		}
 		for j, val := range values {

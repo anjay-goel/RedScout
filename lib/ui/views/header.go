@@ -78,20 +78,25 @@ func (header *HeaderView) updateHeaderPerformanceView(info *models.RedisInfo) {
 }
 
 func (header *HeaderView) updateHeaderResourcesView(info *models.RedisInfo) {
-	// Calculate resources usage percentage
-	memPercent := 0.0
+	cpuBar := components.CreateProgressBar(info.Computed.CPUUsage*100, 100, 20)
+
+	var memBar string
 	if info.Memory.MaxMemory > 0 {
-		memPercent = float64(info.Memory.UsedMemory) / float64(info.Memory.MaxMemory) * 100
+		memPercent := float64(info.Memory.UsedMemory) / float64(info.Memory.MaxMemory) * 100
+		memBar = components.CreateProgressBar(memPercent, 100, 20)
+	} else {
+		memBar = fmt.Sprintf("%s (no limit)", info.Memory.UsedMemoryHuman)
 	}
 
-	// Create progress bars
-	cpuBar := components.CreateProgressBar(info.Computed.CPUUsage*100, 100, 20)
-	memBar := components.CreateProgressBar(memPercent, 100, 20)
+	maxMemDisplay := info.Memory.MaxMemoryHuman
+	if info.Memory.MaxMemory == 0 {
+		maxMemDisplay = "unlimited"
+	}
 
 	text := fmt.Sprintf(" [teal]CPU:[-][white] %s[-]\n [teal]Memory:[-][white] %s[-]\n [teal]Max Mem:[-][white] %s[-]\n [teal]Eviction Policy:[-][white] %s[-]",
 		cpuBar,
 		memBar,
-		info.Memory.MaxMemoryHuman,
+		maxMemDisplay,
 		info.Memory.MemoryPolicy,
 	)
 	header.resources.SetText(text)
