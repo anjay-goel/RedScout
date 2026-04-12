@@ -5,8 +5,10 @@ import (
 )
 
 type HotKey struct {
-	Key Key
-	Ops float64
+	Key       Key
+	Ops       float64
+	Command   string
+	Namespace string
 }
 
 type HotKeyList []HotKey
@@ -18,8 +20,11 @@ func (h HotKeyList) Sort() {
 }
 
 type BigKey struct {
-	Key  Key
-	Size int64
+	Key       Key
+	Size      int64
+	Type      string
+	TTL       int64
+	Namespace string
 }
 
 type BigKeyList []BigKey
