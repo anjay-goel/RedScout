@@ -6,7 +6,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func NewHelpOverlay() *tview.Flex {
+func NewHelpOverlay() *tview.Grid {
 	helpText := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter)
@@ -25,15 +25,12 @@ func NewHelpOverlay() *tview.Flex {
 			"[#f0883e]→/Enter[-] [#8b949e]Drill down[-]    [#f0883e]←/Bksp[-] [#8b949e]Level up[-]    [#f0883e]1-8[-] [#8b949e]Sort columns[-]\n",
 	)
 
-	overlay := tview.NewFlex().SetDirection(tview.FlexRow)
-	overlay.SetBackgroundColor(theme.ColorBg)
-	overlay.AddItem(nil, 0, 1, false)
-	inner := tview.NewFlex().SetDirection(tview.FlexColumn)
-	inner.AddItem(nil, 0, 1, false)
-	inner.AddItem(helpText, 80, 0, false)
-	inner.AddItem(nil, 0, 1, false)
-	overlay.AddItem(inner, 15, 0, false)
-	overlay.AddItem(nil, 0, 1, false)
+	// Use a Grid to center the help text
+	grid := tview.NewGrid().
+		SetColumns(0, 80, 0).
+		SetRows(0, 20, 0).
+		AddItem(helpText, 1, 1, 1, 1, 0, 0, false)
+	grid.SetBackgroundColor(theme.ColorBg)
 
-	return overlay
+	return grid
 }

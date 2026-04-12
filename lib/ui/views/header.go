@@ -93,7 +93,7 @@ func (header *HeaderView) updateMemory(info *models.RedisInfo) {
 		cpuLine = fmt.Sprintf(" [#484f58]· cpu: [#8b949e]%.1f%%[-]", info.Computed.CPUUsage*100)
 	}
 
-	text := fmt.Sprintf(" [#484f58]MEMORY[-]\n %s [#484f58]· %s[-]%s",
+	text := fmt.Sprintf(" [#484f58]RESOURCES[-]\n %s [#484f58]· %s[-]%s",
 		memLine,
 		info.Memory.MemoryPolicy,
 		cpuLine,

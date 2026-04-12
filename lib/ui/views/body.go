@@ -90,8 +90,7 @@ func (b *BodyView) updateTabBar() {
 		tabLabel("Big Keys", b.activeView == TabBigKeys),
 		tabLabel("Hot Keys", b.activeView == TabHotKeys),
 	)
-	actions := "[#f0883e]S[-] [#484f58]scan[-]  [#f0883e]M[-] [#484f58]monitor[-]"
-	b.TabBar.SetText(fmt.Sprintf("%s                    %s", tabs, actions))
+	b.TabBar.SetText(tabs)
 }
 
 func (b *BodyView) SetActiveView(view Tab) {
