@@ -176,6 +176,7 @@ func (s *Scanner) LevelUpNamespace() {
 
 	log.Printf("Going one level up from prefix: %s to new prefix: %s\n", currentPrefix, newPrefix)
 
+	s.State.KeyValue = nil
 	s.State.CurrentPrefix = newPrefix
 	_ = s.ComputeNamespaceStats()
 }

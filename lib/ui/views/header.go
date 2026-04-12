@@ -57,7 +57,7 @@ func (header *HeaderView) updateSystem(info *models.RedisInfo) {
 	if len(os) > 20 {
 		os = os[:20]
 	}
-	text := fmt.Sprintf(" [#484f58]SYSTEM[-]\n [#58a6ff::b]Redis[-::-] [#8b949e]v%s[-] [#484f58]· %s[-]\n [#484f58]Uptime[-] [#8b949e]%s[-] [#484f58]· Clients[-] [#8b949e]%d[-]",
+	text := fmt.Sprintf(" [#484f58]SYSTEM[-]\n [#8b949e]Redis v%s[-] [#484f58]· %s[-]\n [#484f58]Uptime[-] [#8b949e]%s[-] [#484f58]· Clients[-] [#8b949e]%d[-]",
 		info.Server.RedisVersion,
 		os,
 		utils.FormatUptime(info.Server.Uptime),
@@ -96,7 +96,7 @@ func (header *HeaderView) updateMemory(info *models.RedisInfo) {
 	// CPU
 	var cpuPart string
 	if info.CPU.SystemTime == 0 && info.CPU.UserTime == 0 {
-		cpuPart = "[#484f58]CPU[-] [#8b949e]n/a[-]"
+		cpuPart = "[#484f58]CPU[-] [#8b949e]N/A[-]"
 	} else {
 		cpuPart = fmt.Sprintf("[#484f58]CPU[-] [#8b949e]%.1f%%[-]", info.Computed.CPUUsage*100)
 	}

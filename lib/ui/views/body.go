@@ -19,26 +19,29 @@ const (
 )
 
 type BodyView struct {
-	ContentFlex *tview.Flex
-	namespace   *components.Namespace
-	slowLog     *components.SlowLogTable
-	activeView  Tab
-	TabBar      *tview.TextView
-	app         *tview.Application
-	bigKeyTable *tview.Table
-	hotKeyTable *tview.Table
+	ContentFlex  *tview.Flex
+	namespace    *components.Namespace
+	slowLog      *components.SlowLogTable
+	activeView   Tab
+	TabBar       *tview.TextView
+	app          *tview.Application
+	bigKeyTable  *tview.Table
+	hotKeyTable  *tview.Table
+	keyValueView *components.KeyValueView
+	showingValue bool
 }
 
 func NewBodyView(app *tview.Application) *BodyView {
 	view := &BodyView{
-		app:         app,
-		ContentFlex: newContentFlex(),
-		namespace:   components.NewNamespace(),
-		slowLog:     components.NewSlowLogTable(),
-		activeView:  TabNamespace,
-		TabBar:      newTabBar(),
-		bigKeyTable: components.NewBigKeyTable(),
-		hotKeyTable: components.NewHotKeyTable(),
+		app:          app,
+		ContentFlex:  newContentFlex(),
+		namespace:    components.NewNamespace(),
+		slowLog:      components.NewSlowLogTable(),
+		activeView:   TabNamespace,
+		TabBar:       newTabBar(),
+		bigKeyTable:  components.NewBigKeyTable(),
+		hotKeyTable:  components.NewHotKeyTable(),
+		keyValueView: components.NewKeyValueView(),
 	}
 	view.SetActiveView(TabNamespace)
 	return view
@@ -97,6 +100,7 @@ func (b *BodyView) updateTabBar() {
 
 func (b *BodyView) SetActiveView(view Tab) {
 	b.activeView = view
+	b.showingValue = false
 	b.updateTabBar()
 
 	switch view {
@@ -137,6 +141,17 @@ func (b *BodyView) Update(data *models.State) {
 	b.namespace.Update(data.CurrentPrefix, data.NamespaceStats)
 	components.UpdateBigKeyTable(b.bigKeyTable, data.BigKeys)
 	components.UpdateHotKeyTable(b.hotKeyTable, data.HotKeys)
+
+	// Show key value viewer when key value data is available
+	if data.KeyValue != nil && !b.showingValue {
+		b.ShowKeyValue(data.KeyValue)
+	} else if data.KeyValue != nil && b.showingValue {
+		b.keyValueView.Update(data.KeyValue)
+	}
+}
+
+func (b *BodyView) IsShowingValue() bool {
+	return b.showingValue
 }
 
 func (b *BodyView) HandleInput(inp rune, state *models.State) {
@@ -186,4 +201,19 @@ func (b *BodyView) ActiveView() Tab {
 
 func (b *BodyView) NamespaceTable() *tview.Table {
 	return b.namespace.Table
+}
+
+func (b *BodyView) BigKeyTable() *tview.Table {
+	return b.bigKeyTable
+}
+
+func (b *BodyView) HotKeyTable() *tview.Table {
+	return b.hotKeyTable
+}
+
+func (b *BodyView) ShowKeyValue(info *models.KeyValueInfo) {
+	b.showingValue = true
+	b.keyValueView.Update(info)
+	b.ContentFlex.Clear().AddItem(b.keyValueView.View, 0, 1, true)
+	b.app.SetFocus(b.keyValueView.View)
 }

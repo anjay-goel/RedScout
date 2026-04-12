@@ -24,6 +24,9 @@ type State struct {
 	HotKeys  HotKeyList
 	BigKeys  BigKeyList
 
+	// Key Value Viewer
+	KeyValue *KeyValueInfo
+
 	//Chan to send updates
 	Updates chan *State
 

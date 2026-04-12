@@ -17,8 +17,9 @@ func NewBigKeyTable() *tview.Table {
 	table.SetBorderPadding(0, 0, 1, 0)
 	table.SetBackgroundColor(theme.ColorBg)
 	table.SetSelectedStyle(tcell.StyleDefault.
-		Background(theme.ColorBorder).
-		Foreground(theme.ColorText))
+		Background(theme.ColorHighlight).
+		Foreground(theme.ColorText).
+		Attributes(tcell.AttrBold))
 	return table
 }
 

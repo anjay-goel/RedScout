@@ -25,8 +25,9 @@ func NewNamespace() *Namespace {
 	ns.Table.SetBorderPadding(0, 0, 1, 0)
 	ns.Table.SetBackgroundColor(theme.ColorBg)
 	ns.Table.SetSelectedStyle(tcell.StyleDefault.
-		Background(theme.ColorBorder).
-		Foreground(theme.ColorText))
+		Background(theme.ColorHighlight).
+		Foreground(theme.ColorText).
+		Attributes(tcell.AttrBold))
 
 	ns.Title = tview.NewTextView()
 	ns.Title.SetDynamicColors(true)
