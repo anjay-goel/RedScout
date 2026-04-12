@@ -22,15 +22,9 @@ func NewTitleBar() *TitleBar {
 }
 
 func (t *TitleBar) Update(state *models.State) {
-	status := "[#3fb950]●[-]"
-	if !state.ScanComplete {
-		status = "[#f0883e]⠋[-]"
-	}
-
-	right := fmt.Sprintf("[#8b949e]%d keys scanned · %s monitored[-] %s  [#484f58][[-][#f0883e]?[-][#484f58]][-] [#8b949e]help[-]",
+	right := fmt.Sprintf("[#8b949e]%d keys scanned · %s monitored[-]  [#484f58][[-][#f0883e]?[-][#484f58]][-] [#8b949e]help[-]",
 		state.ScannedKeys,
 		utils.FormatDuration(int64(state.TotalMonitorDuration.Seconds())),
-		status,
 	)
 
 	legend := "[#484f58]([#f0883e]orange[-] = shortcut)[-]"
