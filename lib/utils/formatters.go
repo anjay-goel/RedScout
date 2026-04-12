@@ -75,7 +75,7 @@ func FormatUptime(seconds int64) string {
 	return fmt.Sprintf("%dm", m)
 }
 
-const MaxKeyDisplayLen = 64
+const MaxKeyDisplayLen = 48
 
 func TruncateKey(key string) string {
 	if len(key) <= MaxKeyDisplayLen {
