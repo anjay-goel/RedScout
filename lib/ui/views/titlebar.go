@@ -22,10 +22,10 @@ func NewTitleBar() *TitleBar {
 }
 
 func (t *TitleBar) Update(state *models.State) {
-	scan := fmt.Sprintf("[#484f58]Scanned:[-] [#8b949e]%d keys[-] [#8b949e][[-][#f0883e]S[-][#8b949e]][-]",
+	scan := fmt.Sprintf("[#484f58]Scanned[-] [#8b949e][[-][#f0883e]S[-][#8b949e]]:[-] [#8b949e]%d keys[-]",
 		state.ScannedKeys,
 	)
-	monitor := fmt.Sprintf("[#484f58]Monitor:[-] [#8b949e]%s[-] [#8b949e][[-][#f0883e]M[-][#8b949e]][-]",
+	monitor := fmt.Sprintf("[#484f58]Monitor[-] [#8b949e][[-][#f0883e]M[-][#8b949e]]:[-] [#8b949e]%s[-]",
 		utils.FormatDuration(int64(state.TotalMonitorDuration.Seconds())),
 	)
 	statusLog := fmt.Sprintf("[#484f58]LOG › [#8b949e::d]%s[-::-]", state.Status)
