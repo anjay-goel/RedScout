@@ -54,9 +54,13 @@ func (header *HeaderView) Update(state *models.State) {
 }
 
 func (header *HeaderView) updateSystem(info *models.RedisInfo) {
-	text := fmt.Sprintf(" [#484f58]SYSTEM[-]\n [#58a6ff::b]Redis[-::-] [#8b949e]v%s[-] [#484f58]· %s[-]\n [#484f58]%s · %d clients[-]",
+	os := info.Server.OS
+	if len(os) > 20 {
+		os = os[:20]
+	}
+	text := fmt.Sprintf(" [#484f58]SYSTEM[-]\n [#58a6ff::b]Redis[-::-] [#8b949e]v%s[-] [#484f58]· %s[-]\n [#484f58]↑ %s · %d clients[-]",
 		info.Server.RedisVersion,
-		info.Server.OS,
+		os,
 		utils.FormatUptime(info.Server.Uptime),
 		info.Clients.ConnectedClients,
 	)
