@@ -122,6 +122,7 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 
 	ns.Table.SetFixed(1, 0)
 	ns.Table.ScrollToBeginning()
+	ns.Table.Select(1, 0)
 
 	separator := " › "
 	hints := "  [#484f58]([[-][#f0883e]→[-][#484f58]][-] [#484f58]expand  [[-][#f0883e]←[-][#484f58]][-] [#484f58]back)[-]"
