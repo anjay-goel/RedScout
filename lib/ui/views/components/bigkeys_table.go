@@ -23,7 +23,12 @@ func NewBigKeyTable() *tview.Table {
 }
 
 func UpdateBigKeyTable(table *tview.Table, bigKeys models.BigKeyList) {
-	headers := []string{"Key", "Size 1", "Type 2", "TTL 3"}
+	headers := []string{
+		"[#8b949e]Key[-]",
+		"[#8b949e]Size [#f0883e]1[-]",
+		"[#8b949e]Type [#f0883e]2[-]",
+		"[#8b949e]TTL [#f0883e]3[-]",
+	}
 
 	table.Clear()
 	for i, h := range headers {
@@ -32,7 +37,6 @@ func UpdateBigKeyTable(table *tview.Table, bigKeys models.BigKeyList) {
 			align = tview.AlignRight
 		}
 		cell := tview.NewTableCell(h).
-			SetTextColor(theme.ColorSecondary).
 			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
 			SetAlign(align)

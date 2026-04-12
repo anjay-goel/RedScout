@@ -32,7 +32,13 @@ func (sl *SlowLogTable) Update(slowLogs models.SlowLogList) {
 		return
 	}
 
-	headers := []string{"ID 1", "Timestamp 2", "Duration 3", "Command 4", "Arguments"}
+	headers := []string{
+		"[#8b949e]ID [#f0883e]1[-]",
+		"[#8b949e]Timestamp [#f0883e]2[-]",
+		"[#8b949e]Duration [#f0883e]3[-]",
+		"[#8b949e]Command [#f0883e]4[-]",
+		"[#8b949e]Arguments[-]",
+	}
 
 	sl.Table.Clear()
 	for i, h := range headers {
@@ -41,7 +47,6 @@ func (sl *SlowLogTable) Update(slowLogs models.SlowLogList) {
 			align = tview.AlignRight
 		}
 		cell := tview.NewTableCell(h).
-			SetTextColor(theme.ColorSecondary).
 			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
 			SetAlign(align)

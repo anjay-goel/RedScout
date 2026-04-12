@@ -23,7 +23,11 @@ func NewHotKeyTable() *tview.Table {
 }
 
 func UpdateHotKeyTable(table *tview.Table, hotKeys models.HotKeyList) {
-	headers := []string{"Key", "Ops/s 1", "Command 2"}
+	headers := []string{
+		"[#8b949e]Key[-]",
+		"[#8b949e]Ops/s [#f0883e]1[-]",
+		"[#8b949e]Command [#f0883e]2[-]",
+	}
 
 	table.Clear()
 	for i, h := range headers {
@@ -32,7 +36,6 @@ func UpdateHotKeyTable(table *tview.Table, hotKeys models.HotKeyList) {
 			align = tview.AlignRight
 		}
 		cell := tview.NewTableCell(h).
-			SetTextColor(theme.ColorSecondary).
 			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
 			SetAlign(align)

@@ -76,19 +76,19 @@ func newTabBar() *tview.TextView {
 	return tb
 }
 
-func tabLabel(name string, active bool) string {
+func tabLabel(key string, name string, active bool) string {
 	if active {
-		return fmt.Sprintf("[#58a6ff::b]%s[-::-]", name)
+		return fmt.Sprintf("[#f0883e]%s[-] [#58a6ff::b]%s[-::-]", key, name)
 	}
-	return fmt.Sprintf("[#8b949e]%s[-]", name)
+	return fmt.Sprintf("[#f0883e]%s[-] [#8b949e]%s[-]", key, name)
 }
 
 func (b *BodyView) updateTabBar() {
 	tabs := fmt.Sprintf(" %s  %s  %s  %s",
-		tabLabel("Namespaces", b.activeView == TabNamespace),
-		tabLabel("Slow Log", b.activeView == TabSlowLog),
-		tabLabel("Big Keys", b.activeView == TabBigKeys),
-		tabLabel("Hot Keys", b.activeView == TabHotKeys),
+		tabLabel("N", "Namespaces", b.activeView == TabNamespace),
+		tabLabel("L", "Slow Log", b.activeView == TabSlowLog),
+		tabLabel("B", "Big Keys", b.activeView == TabBigKeys),
+		tabLabel("H", "Hot Keys", b.activeView == TabHotKeys),
 	)
 	b.TabBar.SetText(tabs)
 }

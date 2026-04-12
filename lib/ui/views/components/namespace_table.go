@@ -43,7 +43,17 @@ func NewNamespace() *Namespace {
 }
 
 func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList) {
-	headers := []string{"Namespace", "~Keys 1", "~Memory 2", "Avg TTL 3", "% TTL 4", "GET/s 5", "SET/s 6", "DEL/s 7", "OPS/s 8"}
+	headers := []string{
+		"[#8b949e]Namespace[-]",
+		"[#8b949e]~Keys [#f0883e]1[-]",
+		"[#8b949e]~Memory [#f0883e]2[-]",
+		"[#8b949e]Avg TTL [#f0883e]3[-]",
+		"[#8b949e]% TTL [#f0883e]4[-]",
+		"[#8b949e]GET/s [#f0883e]5[-]",
+		"[#8b949e]SET/s [#f0883e]6[-]",
+		"[#8b949e]DEL/s [#f0883e]7[-]",
+		"[#8b949e]OPS/s [#f0883e]8[-]",
+	}
 
 	ns.Table.Clear()
 	for i, h := range headers {
@@ -52,7 +62,6 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 			align = tview.AlignRight
 		}
 		cell := tview.NewTableCell(h).
-			SetTextColor(theme.ColorSecondary).
 			SetBackgroundColor(theme.ColorBg).
 			SetSelectable(false).
 			SetAlign(align)
