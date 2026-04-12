@@ -154,9 +154,10 @@ func (ui *AppUI) createLoadingScreen() {
 						var progressInfo string
 
 						if ui.scanner.State.ScanProgress < 100 {
-							scannedKeys := int64(float64(ui.scanner.State.TotalKeysToScan) * ui.scanner.State.ScanProgress / 100)
 							scanBar := components.CreateProgressBar(ui.scanner.State.ScanProgress, 100, 40)
-							progressInfo = fmt.Sprintf("\n\n[cyan]Scan Progress:[white]\n%s\n[white]%d / %d keys[-]", scanBar, scannedKeys, ui.scanner.State.TotalKeysToScan)
+							progressInfo = fmt.Sprintf("\n\n[cyan]%s[white]\n%s\n[white]%d keys collected[-]", ui.scanner.State.Status, scanBar, ui.scanner.State.ScannedKeys)
+						} else if ui.scanner.State.MonitorDurationTotal == 0 {
+							progressInfo = "\n\n[cyan]Starting monitor...[-]"
 						} else if ui.scanner.State.MonitorProgress < 100 {
 							elapsed := time.Duration(float64(ui.scanner.State.MonitorDurationTotal) * ui.scanner.State.MonitorProgress / 100)
 							monitorBar := components.CreateProgressBar(ui.scanner.State.MonitorProgress, 100, 40)
@@ -252,6 +253,7 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 			err := ui.scanner.ScanMemory()
 			if err == nil {
 				_ = ui.scanner.ComputeNamespaceStats()
+				_ = ui.scanner.ComputeBigKeysFromScanLog()
 			}
 		}()
 	case 'm', 'M':
@@ -259,6 +261,7 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 			err := ui.scanner.MonitorOps()
 			if err == nil {
 				_ = ui.scanner.ComputeNamespaceStats()
+				_ = ui.scanner.ComputeHotKeysFromMonitorLog()
 			}
 		}()
 	default:

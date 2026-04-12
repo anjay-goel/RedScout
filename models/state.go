@@ -42,7 +42,7 @@ type State struct {
 func NewState() *State {
 	return &State{
 		CurrentPrefix:        Key{},
-		LastInfoCheck:        time.Unix(0, 0),
+		LastInfoCheck:        time.Time{},
 		TotalMonitorDuration: 0,
 		Cursor:               0,
 		ScannedKeys:          0,

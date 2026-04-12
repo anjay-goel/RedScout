@@ -46,7 +46,7 @@ func (s *Scanner) FetchRedisInfo() error {
 		parsed.Computed.HitRate = s.State.RedisInfo.Computed.HitRate
 	}
 
-	if s.State.LastInfoCheck.Second() != 0 {
+	if !s.State.LastInfoCheck.IsZero() {
 		currCPUTime := parsed.CPU.SystemTime + parsed.CPU.UserTime
 		prevCPUTime := s.State.RedisInfo.CPU.UserTime + s.State.RedisInfo.CPU.SystemTime
 		parsed.Computed.CPUUsage = (currCPUTime - prevCPUTime) * 1000 / float64(time.Now().UnixMilli()-s.State.LastInfoCheck.UnixMilli())
@@ -78,13 +78,14 @@ func (s *Scanner) scanKeys() ([]string, error) {
 
 		collected = append(collected, res...)
 		scanned += int64(len(res))
+		s.State.Cursor = next
+		s.State.ScannedKeys += int64(len(res))
+		s.State.ScanProgress = min(float64(scanned)/float64(s.Config.KeysScanSize)*50, 50)
+		s.State.Updates <- s.State
 		if next == 0 || scanned >= s.Config.KeysScanSize {
 			break
 		}
-		s.State.Cursor = next
 	}
-
-	s.State.ScannedKeys += scanned
 	return collected, nil
 }
 
@@ -104,11 +105,15 @@ func (s *Scanner) ScanMemory() error {
 	log.Printf("Memory scan started")
 
 	s.State.TotalKeysToScan = s.Config.KeysScanSize
+	s.updateStatus("Collecting keys")
 
 	keys, err := s.scanKeys()
 	if err != nil {
 		return err
 	}
+
+	s.State.TotalKeysToScan = int64(len(keys))
+	s.updateStatus("Scanning memory")
 
 	if _, err := s.scanFile.Seek(0, io.SeekEnd); err != nil {
 		return fmt.Errorf("failed to seek scan file: %w", err)
@@ -129,9 +134,7 @@ func (s *Scanner) ScanMemory() error {
 			trips = append(trips, tr)
 		}
 
-		if _, err := pipe.Exec(s.ctx); err != nil {
-			return err
-		}
+		_, _ = pipe.Exec(s.ctx)
 
 		for _, tr := range trips {
 			xMem, e1 := tr.mem.Result()
@@ -144,7 +147,7 @@ func (s *Scanner) ScanMemory() error {
 		}
 
 		processedKeys += int64(len(keyBatch))
-		s.State.ScanProgress = min(float64(s.State.ScannedKeys)/float64(s.Config.KeysScanSize)*100, 100)
+		s.State.ScanProgress = 50 + min(float64(processedKeys)/float64(len(keys))*50, 49)
 		s.State.Updates <- s.State
 	}
 
@@ -201,14 +204,32 @@ func (s *Scanner) MonitorOps() error {
 				continue
 			}
 			cmd := strings.ToLower(parts[1])
-			var key string
-			if len(parts) >= 4 {
-				key = parts[3]
-			}
 			if cmd == "eval" {
 				continue
 			}
-			_, _ = s.monitorFile.WriteString(fmt.Sprintf("%s %s\n", key, cmd))
+
+			// Extract keys from quoted args (parts[3], parts[5], parts[7], ...)
+			var keys []string
+			switch cmd {
+			case "mset", "msetnx":
+				// MSET key1 val1 key2 val2 ... — every other arg is a key
+				for j := 3; j < len(parts); j += 4 {
+					keys = append(keys, parts[j])
+				}
+			case "mget", "del", "unlink", "exists", "touch", "watch":
+				// All args are keys
+				for j := 3; j < len(parts); j += 2 {
+					keys = append(keys, parts[j])
+				}
+			default:
+				if len(parts) >= 4 {
+					keys = append(keys, parts[3])
+				}
+			}
+
+			for _, key := range keys {
+				_, _ = s.monitorFile.WriteString(fmt.Sprintf("%s %s\n", key, cmd))
+			}
 		case <-progressTicker.C:
 			elapsed := time.Since(s.State.MonitorStartTime)
 			s.State.MonitorProgress = min(float64(elapsed)/float64(s.Config.MonitorDuration)*100, 100)
