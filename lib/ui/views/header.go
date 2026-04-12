@@ -78,7 +78,12 @@ func (header *HeaderView) updateHeaderPerformanceView(info *models.RedisInfo) {
 }
 
 func (header *HeaderView) updateHeaderResourcesView(info *models.RedisInfo) {
-	cpuBar := components.CreateProgressBar(info.Computed.CPUUsage*100, 100, 20)
+	var cpuBar string
+	if info.CPU.SystemTime == 0 && info.CPU.UserTime == 0 {
+		cpuBar = "not reported"
+	} else {
+		cpuBar = components.CreateProgressBar(info.Computed.CPUUsage*100, 100, 20)
+	}
 
 	var memBar string
 	if info.Memory.MaxMemory > 0 {
