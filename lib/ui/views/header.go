@@ -54,7 +54,7 @@ func (header *HeaderView) Update(state *models.State) {
 }
 
 func (header *HeaderView) updateSystem(info *models.RedisInfo) {
-	text := fmt.Sprintf(" [#484f58]SYSTEM[-]\n [#58a6ff::b]Redis[-::-] [#8b949e]v%s[-] [#484f58]· %s · %s · %d clients[-]",
+	text := fmt.Sprintf(" [#484f58]SYSTEM[-]\n [#58a6ff::b]Redis[-::-] [#8b949e]v%s[-] [#484f58]· %s · %s[-]\n [#484f58]%d clients[-]",
 		info.Server.RedisVersion,
 		info.Server.OS,
 		utils.FormatDuration(info.Server.Uptime),
@@ -67,7 +67,7 @@ func (header *HeaderView) updatePerformance(info *models.RedisInfo) {
 	totalKeys := info.Keyspace["db0"].Keys
 	avgTTL := info.Keyspace["db0"].AvgTTL
 
-	text := fmt.Sprintf(" [#484f58]PERFORMANCE[-]\n [#f0883e::b]%s[-::-] [#8b949e]keys[-] [#484f58]│[-] [#f0883e]%s[-] [#484f58]│[-] [#3fb950]%.1f%%[-] [#8b949e]hit[-] [#484f58]│[-] [#8b949e]ttl %s[-]",
+	text := fmt.Sprintf(" [#484f58]PERFORMANCE[-]\n [#f0883e::b]%s[-::-] [#8b949e]keys[-] [#484f58]│[-] [#f0883e]%s[-] [#8b949e]ops[-] [#484f58]│[-] [#3fb950]%.1f%%[-] [#8b949e]hit[-] [#484f58]│[-] [#8b949e]ttl %s[-]",
 		utils.FormatNumber(float64(totalKeys)),
 		utils.FormatOpsPerSec(float64(info.Stats.OpsPerSec)),
 		info.Computed.HitRate*100,
