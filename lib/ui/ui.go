@@ -186,7 +186,7 @@ func (ui *AppUI) createMainScreen() {
 	flex.SetBackgroundColor(theme.ColorBg)
 
 	flex.AddItem(ui.titleBar.View, 1, 0, false)
-	flex.AddItem(ui.headers.HeaderFlex, 4, 0, false)
+	flex.AddItem(ui.headers.HeaderFlex, 5, 0, false)
 
 	ui.body.TabBar.SetBorder(false)
 	flex.AddItem(ui.body.TabBar, 1, 0, false)
