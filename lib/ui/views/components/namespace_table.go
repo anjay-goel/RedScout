@@ -22,6 +22,7 @@ func NewNamespace() *Namespace {
 	ns.Table = tview.NewTable().SetFixed(1, 0)
 	ns.Table.SetSelectable(true, false)
 	ns.Table.SetBorders(false)
+	ns.Table.SetBorderPadding(0, 0, 1, 0)
 	ns.Table.SetBackgroundColor(theme.ColorBg)
 	ns.Table.SetSelectedStyle(tcell.StyleDefault.
 		Background(theme.ColorBorder).
