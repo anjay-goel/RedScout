@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -243,6 +244,146 @@ func (s *Scanner) MonitorOps() error {
 			return nil
 		}
 	}
+}
+
+// FindKeysWithPrefix returns keys from the scan log matching the current prefix
+func (s *Scanner) FindKeysWithPrefix(prefix models.Key, limit int) []string {
+	s.muScan.Lock()
+	defer s.muScan.Unlock()
+
+	_, _ = s.scanFile.Seek(0, io.SeekStart)
+	scanner := bufio.NewScanner(s.scanFile)
+
+	var keys []string
+	for scanner.Scan() {
+		parts := strings.Fields(scanner.Text())
+		if len(parts) != 4 {
+			continue
+		}
+		key := s.kp.NewKey(parts[0], false)
+		if s.kp.IsA(key, prefix) {
+			keys = append(keys, parts[0])
+			if len(keys) >= limit {
+				break
+			}
+		}
+	}
+	return keys
+}
+
+func (s *Scanner) FetchKeyValue(key string) error {
+	s.muRedis.Lock()
+	defer s.muRedis.Unlock()
+
+	ctx := s.ctx
+
+	// Get type
+	keyType, err := s.redis.Type(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+
+	info := &models.KeyValueInfo{
+		Key:  key,
+		Type: keyType,
+	}
+
+	// Get TTL
+	ttl, err := s.redis.TTL(ctx, key).Result()
+	if err == nil {
+		info.TTL = int64(ttl.Seconds())
+	}
+
+	// Get memory usage
+	mem, err := s.redis.MemoryUsage(ctx, key).Result()
+	if err == nil {
+		info.Size = mem
+	}
+
+	// Get value based on type
+	switch keyType {
+	case "string":
+		val, err := s.redis.Get(ctx, key).Result()
+		if err == nil {
+			info.Length = int64(len(val))
+			if len(val) > 1024 {
+				info.Value = val[:1024] + "... (truncated)"
+			} else {
+				info.Value = val
+			}
+		}
+	case "list":
+		length, err := s.redis.LLen(ctx, key).Result()
+		if err == nil {
+			info.Length = length
+		}
+		vals, err := s.redis.LRange(ctx, key, 0, 9).Result()
+		if err == nil {
+			info.Value = strings.Join(vals, "\n")
+			if length > 10 {
+				info.Value += fmt.Sprintf("\n... (%d more)", length-10)
+			}
+		}
+	case "set":
+		length, err := s.redis.SCard(ctx, key).Result()
+		if err == nil {
+			info.Length = length
+		}
+		vals, err := s.redis.SRandMemberN(ctx, key, 10).Result()
+		if err == nil {
+			info.Value = strings.Join(vals, "\n")
+			if length > 10 {
+				info.Value += fmt.Sprintf("\n... (%d more)", length-10)
+			}
+		}
+	case "hash":
+		length, err := s.redis.HLen(ctx, key).Result()
+		if err == nil {
+			info.Length = length
+		}
+		vals, err := s.redis.HGetAll(ctx, key).Result()
+		if err == nil {
+			lines := make([]string, 0, len(vals))
+			count := 0
+			for k, v := range vals {
+				if count >= 10 {
+					lines = append(lines, fmt.Sprintf("... (%d more)", length-10))
+					break
+				}
+				lines = append(lines, fmt.Sprintf("%s: %s", k, v))
+				count++
+			}
+			info.Value = strings.Join(lines, "\n")
+		}
+	case "zset":
+		length, err := s.redis.ZCard(ctx, key).Result()
+		if err == nil {
+			info.Length = length
+		}
+		vals, err := s.redis.ZRangeWithScores(ctx, key, 0, 9).Result()
+		if err == nil {
+			lines := make([]string, 0, len(vals))
+			for _, z := range vals {
+				lines = append(lines, fmt.Sprintf("%.0f: %v", z.Score, z.Member))
+			}
+			if length > 10 {
+				lines = append(lines, fmt.Sprintf("... (%d more)", length-10))
+			}
+			info.Value = strings.Join(lines, "\n")
+		}
+	case "stream":
+		length, err := s.redis.XLen(ctx, key).Result()
+		if err == nil {
+			info.Length = length
+		}
+		info.Value = fmt.Sprintf("stream with %d entries", info.Length)
+	default:
+		info.Value = fmt.Sprintf("(%s type)", keyType)
+	}
+
+	s.State.KeyValue = info
+	s.State.Updates <- s.State
+	return nil
 }
 
 func (s *Scanner) InfoUpdates() {

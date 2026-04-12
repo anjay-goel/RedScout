@@ -19,26 +19,29 @@ const (
 )
 
 type BodyView struct {
-	ContentFlex *tview.Flex
-	namespace   *components.Namespace
-	slowLog     *components.SlowLogTable
-	activeView  Tab
-	TabBar      *tview.TextView
-	app         *tview.Application
-	bigKeyTable *tview.Table
-	hotKeyTable *tview.Table
+	ContentFlex  *tview.Flex
+	namespace    *components.Namespace
+	slowLog      *components.SlowLogTable
+	activeView   Tab
+	TabBar       *tview.TextView
+	app          *tview.Application
+	bigKeyTable  *tview.Table
+	hotKeyTable  *tview.Table
+	keyValueView *components.KeyValueView
+	showingValue bool
 }
 
 func NewBodyView(app *tview.Application) *BodyView {
 	view := &BodyView{
-		app:         app,
-		ContentFlex: newContentFlex(),
-		namespace:   components.NewNamespace(),
-		slowLog:     components.NewSlowLogTable(),
-		activeView:  TabNamespace,
-		TabBar:      newTabBar(),
-		bigKeyTable: components.NewBigKeyTable(),
-		hotKeyTable: components.NewHotKeyTable(),
+		app:          app,
+		ContentFlex:  newContentFlex(),
+		namespace:    components.NewNamespace(),
+		slowLog:      components.NewSlowLogTable(),
+		activeView:   TabNamespace,
+		TabBar:       newTabBar(),
+		bigKeyTable:  components.NewBigKeyTable(),
+		hotKeyTable:  components.NewHotKeyTable(),
+		keyValueView: components.NewKeyValueView(),
 	}
 	view.SetActiveView(TabNamespace)
 	return view
@@ -137,6 +140,24 @@ func (b *BodyView) Update(data *models.State) {
 	b.namespace.Update(data.CurrentPrefix, data.NamespaceStats)
 	components.UpdateBigKeyTable(b.bigKeyTable, data.BigKeys)
 	components.UpdateHotKeyTable(b.hotKeyTable, data.HotKeys)
+
+	// Show key value viewer when at leaf level
+	if b.activeView == TabNamespace && len(data.NamespaceStats) == 0 && data.KeyValue != nil {
+		if !b.showingValue {
+			b.showingValue = true
+			b.ContentFlex.Clear().AddItem(b.keyValueView.View, 0, 1, true)
+			b.app.SetFocus(b.keyValueView.View)
+		}
+		b.keyValueView.Update(data.KeyValue)
+	} else if b.showingValue && b.activeView == TabNamespace {
+		b.showingValue = false
+		b.ContentFlex.Clear().AddItem(b.namespace.Flex, 0, 2, true)
+		b.app.SetFocus(b.namespace.Table)
+	}
+}
+
+func (b *BodyView) IsShowingValue() bool {
+	return b.showingValue
 }
 
 func (b *BodyView) HandleInput(inp rune, state *models.State) {

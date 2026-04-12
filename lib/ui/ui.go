@@ -260,17 +260,28 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 
 	switch e.Key() {
 	case tcell.KeyEnter, tcell.KeyRight:
-		if ui.body.ActiveView() == "namespace" {
+		if ui.body.ActiveView() == "namespace" && !ui.body.IsShowingValue() {
 			row, _ := ui.body.NamespaceTable().GetSelection()
 			if row <= 0 || row > len(ui.scanner.State.NamespaceStats) {
 				return nil
 			}
 			namespace := ui.scanner.State.NamespaceStats[row-1].Namespace
 			ui.scanner.DrillDownNamespace(namespace)
+
+			// If no sub-namespaces, find a matching key and fetch its value
+			if len(ui.scanner.State.NamespaceStats) == 0 {
+				go func() {
+					keys := ui.scanner.FindKeysWithPrefix(ui.scanner.State.CurrentPrefix, 1)
+					if len(keys) > 0 {
+						_ = ui.scanner.FetchKeyValue(keys[0])
+					}
+				}()
+			}
 			return nil
 		}
 	case tcell.KeyBackspace, tcell.KeyBackspace2, tcell.KeyLeft:
 		if ui.body.ActiveView() == "namespace" {
+			ui.scanner.State.KeyValue = nil // clear value viewer
 			ui.scanner.LevelUpNamespace()
 			return nil
 		}
