@@ -5,7 +5,6 @@ import (
 
 	"github.com/rivo/tview"
 	"redscout/lib/ui/theme"
-	"redscout/lib/ui/views/components"
 	"redscout/lib/utils"
 	"redscout/models"
 )
@@ -81,26 +80,34 @@ func (header *HeaderView) updatePerformance(info *models.RedisInfo) {
 }
 
 func (header *HeaderView) updateMemory(info *models.RedisInfo) {
+	// Memory: used / max (percent) or used (no limit)
 	var memLine string
 	if info.Memory.MaxMemory > 0 {
 		memPercent := float64(info.Memory.UsedMemory) / float64(info.Memory.MaxMemory) * 100
-		memBar := components.CreateProgressBar(memPercent, 100, 15)
-		memLine = fmt.Sprintf("%s [#f0883e::b]%s[-::-]", memBar, info.Memory.UsedMemoryHuman)
+		memLine = fmt.Sprintf("[#484f58]mem[-] [#f0883e::b]%s[-::-] [#484f58]/[-] [#8b949e]%s[-] [#484f58]([#f0883e]%.1f%%[-][#484f58])[-]",
+			info.Memory.UsedMemoryHuman,
+			info.Memory.MaxMemoryHuman,
+			memPercent,
+		)
 	} else {
-		memLine = fmt.Sprintf("[#f0883e::b]%s[-::-] [#484f58]· no limit[-]", info.Memory.UsedMemoryHuman)
+		memLine = fmt.Sprintf("[#484f58]mem[-] [#f0883e::b]%s[-::-] [#484f58]· no limit[-]", info.Memory.UsedMemoryHuman)
 	}
 
-	cpuLine := ""
+	// CPU
+	var cpuPart string
 	if info.CPU.SystemTime == 0 && info.CPU.UserTime == 0 {
-		cpuLine = " [#484f58]· cpu: n/a[-]"
+		cpuPart = "[#484f58]cpu[-] [#8b949e]n/a[-]"
 	} else {
-		cpuLine = fmt.Sprintf(" [#484f58]· cpu: [#8b949e]%.1f%%[-]", info.Computed.CPUUsage*100)
+		cpuPart = fmt.Sprintf("[#484f58]cpu[-] [#8b949e]%.1f%%[-]", info.Computed.CPUUsage*100)
 	}
 
-	text := fmt.Sprintf(" [#484f58]RESOURCES[-]\n %s [#484f58]· %s[-]%s",
+	// Policy
+	policyPart := fmt.Sprintf("[#484f58]policy[-] [#8b949e]%s[-]", info.Memory.MemoryPolicy)
+
+	text := fmt.Sprintf(" [#484f58]RESOURCES[-]\n %s\n %s [#484f58]·[-] %s",
 		memLine,
-		info.Memory.MemoryPolicy,
-		cpuLine,
+		cpuPart,
+		policyPart,
 	)
 	header.resources.SetText(text)
 }
