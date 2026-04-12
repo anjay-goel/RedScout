@@ -70,7 +70,7 @@ func (header *HeaderView) updatePerformance(info *models.RedisInfo) {
 	totalKeys := info.Keyspace["db0"].Keys
 	avgTTL := info.Keyspace["db0"].AvgTTL
 
-	text := fmt.Sprintf(" [#484f58]PERFORMANCE[-]\n [#f0883e::b]%s[-::-] [#8b949e]keys[-] [#484f58]│[-] [#f0883e]%s[-] [#8b949e]ops[-] [#484f58]│[-] [#3fb950]%.1f%%[-] [#8b949e]hit[-] [#484f58]│[-] [#8b949e]ttl %s[-]",
+	text := fmt.Sprintf(" [#484f58]PERFORMANCE[-]\n [#f0883e::b]%s[-::-] [#8b949e]keys[-] [#484f58]│[-] [#f0883e]%s[-] [#8b949e]ops[-] [#484f58]│[-] [#3fb950]%.1f%%[-] [#8b949e]hit[-] [#484f58]│[-] [#8b949e]TTL %s[-]",
 		utils.FormatNumber(float64(totalKeys)),
 		utils.FormatOpsPerSec(float64(info.Stats.OpsPerSec)),
 		info.Computed.HitRate*100,
@@ -84,21 +84,21 @@ func (header *HeaderView) updateMemory(info *models.RedisInfo) {
 	var memLine string
 	if info.Memory.MaxMemory > 0 {
 		memPercent := float64(info.Memory.UsedMemory) / float64(info.Memory.MaxMemory) * 100
-		memLine = fmt.Sprintf("[#484f58]mem[-] [#f0883e::b]%s[-::-] [#484f58]/[-] [#8b949e]%s[-] [#484f58]([#f0883e]%.1f%%[-][#484f58])[-]",
+		memLine = fmt.Sprintf("[#484f58]Mem[-] [#f0883e::b]%s[-::-] [#484f58]/[-] [#8b949e]%s[-] [#484f58]([#f0883e]%.1f%%[-][#484f58])[-]",
 			info.Memory.UsedMemoryHuman,
 			info.Memory.MaxMemoryHuman,
 			memPercent,
 		)
 	} else {
-		memLine = fmt.Sprintf("[#484f58]mem[-] [#f0883e::b]%s[-::-] [#484f58]· no limit[-]", info.Memory.UsedMemoryHuman)
+		memLine = fmt.Sprintf("[#484f58]Mem[-] [#f0883e::b]%s[-::-] [#484f58]· no limit[-]", info.Memory.UsedMemoryHuman)
 	}
 
 	// CPU
 	var cpuPart string
 	if info.CPU.SystemTime == 0 && info.CPU.UserTime == 0 {
-		cpuPart = "[#484f58]cpu[-] [#8b949e]n/a[-]"
+		cpuPart = "[#484f58]CPU[-] [#8b949e]n/a[-]"
 	} else {
-		cpuPart = fmt.Sprintf("[#484f58]cpu[-] [#8b949e]%.1f%%[-]", info.Computed.CPUUsage*100)
+		cpuPart = fmt.Sprintf("[#484f58]CPU[-] [#8b949e]%.1f%%[-]", info.Computed.CPUUsage*100)
 	}
 
 	text := fmt.Sprintf(" [#484f58]RESOURCES[-]\n %s [#484f58]·[-] [#8b949e]%s[-]\n %s",
