@@ -26,3 +26,4 @@ temp/
 
 *.log
 *redscout_log_*
+.superpowers
