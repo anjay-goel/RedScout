@@ -36,7 +36,7 @@ func NewNamespace() *Namespace {
 	ns.Flex.SetDirection(tview.FlexRow)
 	ns.Flex.SetBackgroundColor(theme.ColorBg)
 	ns.Flex.SetBorderPadding(0, 0, 0, 0)
-	ns.Flex.AddItem(ns.Title, 2, -1, false)
+	ns.Flex.AddItem(ns.Title, 1, -1, false)
 	ns.Flex.AddItem(ns.Table, 0, 1, true)
 
 	return ns
