@@ -53,13 +53,6 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 		tcell.ColorGray,
 	}
 
-	// Calculate max width for each column
-	colWidths := make([]int, len(headers))
-	for i := range headers {
-		// Consider the header width (12 is the format width we use)
-		colWidths[i] = 12
-	}
-
 	// Add header row
 	ns.Table.Clear()
 	for i, h := range headers {
@@ -76,27 +69,22 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 		ns.Table.SetCell(0, i, cell)
 	}
 
-	// Add data rows and update max widths
+	// Pad namespace to fixed width to prevent layout shift
+	nsPad := utils.MaxKeyDisplayLen
+	// Add data rows
 	for i, row := range stats {
+		nsVal := utils.TruncateKey(row.Namespace)
 		values := []string{
-			fmt.Sprintf("%-20s", utils.TruncateKey(row.Namespace)),
+			fmt.Sprintf("%-*s", nsPad, nsVal),
 			fmt.Sprintf("%12s", utils.FormatNumber(float64(row.EstKeys))),
 			fmt.Sprintf("%12s", utils.FormatBytes(row.EstMemory)),
 			fmt.Sprintf("%12s", utils.FormatDuration(row.AvgTTL)),
 			fmt.Sprintf("%11.1f%%", row.TTLPercent*100),
-			fmt.Sprintf("%8.1f/s", row.Ops[models.GetOp]),
-			fmt.Sprintf("%8.1f/s", row.Ops[models.SetOp]),
-			fmt.Sprintf("%8.1f/s", row.Ops[models.DelOp]),
-			fmt.Sprintf("%8.1f/s", row.Ops[models.TotalOp]),
+			fmt.Sprintf("%10.1f/s", row.Ops[models.GetOp]),
+			fmt.Sprintf("%10.1f/s", row.Ops[models.SetOp]),
+			fmt.Sprintf("%10.1f/s", row.Ops[models.DelOp]),
+			fmt.Sprintf("%10.1f/s", row.Ops[models.TotalOp]),
 			fmt.Sprintf("%-12s", strings.Join(row.Types[:], ",")),
-		}
-
-		// Update max widths
-		for j, val := range values {
-			contentWidth := len(strings.TrimSpace(val))
-			if contentWidth > colWidths[j] {
-				colWidths[j] = contentWidth
-			}
 		}
 
 		for j, val := range values {
@@ -113,16 +101,6 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 		}
 	}
 
-	// Set column widths
-	totalWidth := 0
-	for i, width := range colWidths {
-		width += 6
-		ns.Table.SetCell(0, i, ns.Table.GetCell(0, i).SetExpansion(0))
-		ns.Table.SetCell(0, i, ns.Table.GetCell(0, i).SetMaxWidth(width))
-		totalWidth += width
-	}
-
-	// Set statsTable width to total width of columns
 	ns.Table.SetFixed(1, 0)
 	ns.Table.ScrollToBeginning()
 	separator := " › "
