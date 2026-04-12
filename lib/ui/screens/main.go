@@ -5,7 +5,6 @@ import (
 	"charm.land/lipgloss/v2"
 	tea "charm.land/bubbletea/v2"
 	"redscout/lib/ui/components"
-	"redscout/lib/ui/theme"
 	"redscout/models"
 )
 
@@ -31,8 +30,8 @@ func NewMainModel(state *models.State, width, height int) MainModel {
 
 func (m *MainModel) rebuildTable() {
 	tableHeight := m.Height - 8
-	if tableHeight < 5 {
-		tableHeight = 5
+	if tableHeight < 10 {
+		tableHeight = 20 // sensible default before window size is known
 	}
 
 	switch m.ActiveTab {
@@ -93,7 +92,7 @@ func (m MainModel) View() string {
 		content,
 	)
 
-	return lipgloss.NewStyle().Background(theme.Bg).Width(m.Width).Height(m.Height).Render(screen)
+	return screen
 }
 
 func (m *MainModel) SetTab(tab components.Tab) {
