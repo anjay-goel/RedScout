@@ -30,5 +30,5 @@ func (t *TitleBar) Update(state *models.State) {
 	helpHint := "[#484f58][[-][#f0883e]?[-][#484f58]][-] [#8b949e]help[-]"
 	legend := "[#484f58]([#f0883e]orange[-] = shortcut)[-]"
 
-	t.View.SetText(fmt.Sprintf(" [#58a6ff::b]RedScout[-::-]  %s  %s  %s  %s", stats, statusLog, helpHint, legend))
+	t.View.SetText(fmt.Sprintf(" [#58a6ff::b]RedScout[-::-]  %s  %s  %s  %s", stats, helpHint, legend, statusLog))
 }
