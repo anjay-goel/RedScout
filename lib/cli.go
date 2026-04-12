@@ -9,15 +9,6 @@ import (
 	"time"
 )
 
-// Default ID patterns that match common identifier formats
-var defaultIDPatterns = []string{
-	`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`, // UUID
-	`[a-zA-Z0-9]{20,}`,  // Firebase UIDs, long alphanumeric tokens
-	`[0-9]{16,}`,         // Snowflake IDs
-	`[0-9a-f]{24}`,       // MongoDB ObjectIDs
-	`[0-9a-f]{8,40}`,     // Hex hashes (short to SHA-1)
-}
-
 // ParseFlags parses command line flags and returns a config
 func ParseFlags() models.Config {
 	config := models.DefaultConfig()
@@ -59,30 +50,19 @@ func ParseFlags() models.Config {
 	config.MonitorDuration = time.Duration(monitorDuration) * time.Second
 	config.RefreshInterval = time.Duration(refreshInterval) * time.Second
 
-	// Build ID patterns (only used in manual mode)
-	if !config.InferKeys {
-		if idRegexInput != "" {
-			// User-provided patterns override defaults
-			for _, pattern := range strings.Split(idRegexInput, " ") {
-				pattern = strings.TrimSpace(pattern)
-				if pattern == "" {
-					continue
-				}
-				regex, err := regexp.Compile("^" + pattern + "$")
-				if err != nil {
-					panic("Invalid regex pattern: " + pattern)
-				}
-				config.IDPatterns = append(config.IDPatterns, regex)
+	// Build ID patterns from --id-regex (manual mode only)
+	// When no --id-regex is provided, KeyParser uses the built-in IsID heuristic
+	if idRegexInput != "" {
+		for _, pattern := range strings.Split(idRegexInput, " ") {
+			pattern = strings.TrimSpace(pattern)
+			if pattern == "" {
+				continue
 			}
-		} else {
-			// Use default ID patterns
-			for _, pattern := range defaultIDPatterns {
-				regex, err := regexp.Compile("^" + pattern + "$")
-				if err != nil {
-					panic("Invalid default regex pattern: " + pattern)
-				}
-				config.IDPatterns = append(config.IDPatterns, regex)
+			regex, err := regexp.Compile("^" + pattern + "$")
+			if err != nil {
+				panic("Invalid regex pattern: " + pattern)
 			}
+			config.IDPatterns = append(config.IDPatterns, regex)
 		}
 	}
 

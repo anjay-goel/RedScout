@@ -51,11 +51,23 @@ Download the appropriate binary for your platform from the releases page.
 
 | Flag                   | Type   | Default   | Description                                                   |
 |------------------------|--------|-----------|---------------------------------------------------------------|
-| `--delimiter`          | string | `:`       | Delimiter for separating Redis keys into namespaces           |
 | `--scan-size`          | int    | `5000`    | Number of keys to scan                                        |
 | `--monitor-duration`   | int    | `10`      | Duration in seconds to run the `monitor` command              |
 | `--refresh-interval`   | int    | `5`       | Interval in seconds between Redis info refreshes              |
-| `--id-regex`           | string | _(empty)_ | Space-separated list of regex patterns to infer IDs from keys |
+
+### Key Parsing
+
+By default, RedScout splits keys on `:` and uses built-in patterns to detect IDs (UUIDs, Firebase UIDs, hex hashes, etc.). For advanced use cases, you can customize this or switch to auto-inference.
+
+| Flag             | Type   | Default   | Description                                                   |
+|------------------|--------|-----------|---------------------------------------------------------------|
+| `--delimiter`    | string | `:`       | Delimiter for splitting keys (manual mode)                    |
+| `--id-regex`     | string | _defaults_| Space-separated regex patterns to detect IDs (overrides defaults) |
+| `--infer-keys`   | bool   | `false`   | Auto-infer key structure using heuristics                     |
+
+**Manual mode** (default): Splits on `--delimiter`. No ID detection unless `--id-regex` is provided. When `--id-regex` is given, matching segments are collapsed into `{id}` groups.
+
+**Auto-infer mode** (`--infer-keys`): Tries multiple delimiters per key (`: . / - _`), classifies each segment as ID or namespace by its character pattern, and merges consecutive namespace parts. Zero config needed — handles mixed key patterns in the same Redis instance.
 
 ### Output Settings
 

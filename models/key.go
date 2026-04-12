@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 const PatternPlaceholder = "{id}"
@@ -55,13 +56,87 @@ func (kp *KeyParser) SetInferFunc(fn KeyInferFunc) {
 	kp.inferFunc = fn
 }
 
-func (kp *KeyParser) matchesPattern(part string) bool {
-	for _, regex := range kp.idPatterns {
-		if regex.MatchString(part) {
-			return true
+// IsID determines if a key segment looks like an identifier using heuristics.
+//
+// Rules:
+//
+//	UUID (36 chars, 8-4-4-4-12 hex)          → always ID
+//	Pure numeric (any length)                 → always ID
+//	>= 6 chars with >= 50% digits            → ID
+//	8-11 chars with mixed case + digits       → ID
+//	8-11 chars with >= 40% digits             → ID
+//	12-19 chars with mixed case + digits      → ID
+//	12-19 chars with >= 30% digits            → ID
+//	20+ chars with any digit                  → ID
+//	< 6 chars or no digits                    → not ID
+func IsID(segment string) bool {
+	// UUID: 8-4-4-4-12 hex with dashes
+	if len(segment) == 36 && segment[8] == '-' && segment[13] == '-' && segment[18] == '-' && segment[23] == '-' {
+		return true
+	}
+
+	// Count character classes
+	upper := 0
+	lower := 0
+	digits := 0
+	for _, r := range segment {
+		switch {
+		case unicode.IsUpper(r):
+			upper++
+		case unicode.IsLower(r):
+			lower++
+		case unicode.IsDigit(r):
+			digits++
 		}
 	}
-	return false
+
+	// Pure numeric → always ID (any length)
+	if digits > 0 && digits == len(segment) {
+		return true
+	}
+
+	total := upper + lower + digits
+	if total == 0 || digits == 0 {
+		return false
+	}
+
+	digitRatio := float64(digits) / float64(total)
+
+	// >= 6 chars with >= 50% digits → ID (e.g., "a1b2c3", "abc123")
+	if len(segment) >= 6 && digitRatio >= 0.5 {
+		return true
+	}
+
+	if len(segment) < 8 {
+		return false
+	}
+
+	hasMixedCase := upper > 0 && lower > 0
+
+	// 20+ chars: any digit is enough
+	if len(segment) >= 20 {
+		return true
+	}
+
+	// 12-19 chars: mixed case + digits, or >= 30% digits
+	if len(segment) >= 12 {
+		return hasMixedCase || digitRatio >= 0.3
+	}
+
+	// 8-11 chars: mixed case + digits, or >= 40% digits
+	return (hasMixedCase && digits > 0) || digitRatio >= 0.4
+}
+
+func (kp *KeyParser) matchesPattern(part string) bool {
+	if len(kp.idPatterns) > 0 {
+		for _, regex := range kp.idPatterns {
+			if regex.MatchString(part) {
+				return true
+			}
+		}
+		return false
+	}
+	return IsID(part)
 }
 
 // NewKey parses a raw Redis key string into segments.
@@ -101,8 +176,12 @@ func (kp *KeyParser) IsA(k Key, prefix Key) bool {
 	}
 
 	for i := 0; i < len(prefix); i++ {
-		if prefix[i] == PatternPlaceholder || k[i] == PatternPlaceholder {
-			continue
+		if prefix[i] == PatternPlaceholder {
+			continue // prefix {id} matches any key value at this position
+		}
+		if k[i] == PatternPlaceholder {
+			// key has {id} at this position — only match if prefix also has {id}
+			return false
 		}
 		if k[i] != prefix[i] {
 			return false
@@ -113,7 +192,7 @@ func (kp *KeyParser) IsA(k Key, prefix Key) bool {
 }
 
 // Namespace extracts the next namespace segment from a key relative to a prefix.
-func (kp *KeyParser) Namespace(k Key, prefix Key, inferIds bool) (string, error) {
+func (kp *KeyParser) Namespace(k Key, prefix Key) (string, error) {
 	if len(k) == 0 {
 		return "", fmt.Errorf("key is empty")
 	}
@@ -134,7 +213,7 @@ func (kp *KeyParser) Namespace(k Key, prefix Key, inferIds bool) (string, error)
 }
 
 // Append adds a segment to a key.
-func (kp *KeyParser) Append(k Key, part string, inferIds bool) (Key, error) {
+func (kp *KeyParser) Append(k Key, part string) (Key, error) {
 	if part == "" {
 		return k, fmt.Errorf("key is empty")
 	}

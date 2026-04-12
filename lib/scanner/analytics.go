@@ -67,7 +67,7 @@ func (s *Scanner) computeScanOpsLogs(snapshots map[string]*models.NamespaceSnaps
 		}
 
 		key := s.kp.NewKey(parts[0], true)
-		namespace, err := s.kp.Namespace(key, s.State.CurrentPrefix, false)
+		namespace, err := s.kp.Namespace(key, s.State.CurrentPrefix)
 		if err != nil {
 			continue
 		}
@@ -128,7 +128,7 @@ func (s *Scanner) computeNamespaceMonitorLog(
 		}
 
 		key := s.kp.NewKey(parts[0], true)
-		namespace, err := s.kp.Namespace(key, s.State.CurrentPrefix, false)
+		namespace, err := s.kp.Namespace(key, s.State.CurrentPrefix)
 		if err != nil {
 			continue
 		}

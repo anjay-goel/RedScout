@@ -2,58 +2,10 @@ package scanner
 
 import (
 	"redscout/models"
-	"regexp"
 	"strings"
-	"unicode"
 )
 
 var candidateDelimiters = []string{":", ".", "/", "-", "_", "#", "|"}
-
-var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
-
-// isID determines if a key segment looks like an identifier rather than a namespace.
-//
-// Heuristic:
-//  1. UUID format (8-4-4-4-12 hex with dashes) → ID
-//  2. Length >= 8 with both letters and digits → ID
-//  3. Length >= 16 and pure numeric → ID (snowflake IDs)
-//  4. Otherwise → namespace
-func isID(segment string) bool {
-	if uuidPattern.MatchString(segment) {
-		return true
-	}
-
-	if len(segment) >= 6 {
-		hasLetter := false
-		hasDigit := false
-		for _, r := range segment {
-			if unicode.IsLetter(r) {
-				hasLetter = true
-			}
-			if unicode.IsDigit(r) {
-				hasDigit = true
-			}
-			if hasLetter && hasDigit {
-				return true
-			}
-		}
-	}
-
-	if len(segment) >= 16 {
-		allDigit := true
-		for _, r := range segment {
-			if !unicode.IsDigit(r) {
-				allDigit = false
-				break
-			}
-		}
-		if allDigit {
-			return true
-		}
-	}
-
-	return false
-}
 
 var idPlaceholder = models.PatternPlaceholder
 
@@ -89,7 +41,7 @@ func InferKeyTemplate(key string) ([]string, string) {
 		}, len(parts))
 
 		for i, part := range parts {
-			id := isID(part)
+			id := models.IsID(part)
 			if id {
 				hasID = true
 				classified[i] = struct {
@@ -141,7 +93,7 @@ func InferKeyTemplate(key string) ([]string, string) {
 	}
 
 	// No delimiter matched
-	if isID(key) {
+	if models.IsID(key) {
 		return []string{idPlaceholder}, ""
 	}
 	return []string{key}, ""

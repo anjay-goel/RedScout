@@ -160,7 +160,7 @@ func (s *Scanner) Start() {
 func (s *Scanner) DrillDownNamespace(namespace string) {
 	currentPrefix := s.State.CurrentPrefix
 
-	newPrefix, err := s.kp.Append(currentPrefix, namespace, true)
+	newPrefix, err := s.kp.Append(currentPrefix, namespace)
 	if err != nil {
 		return
 	}
