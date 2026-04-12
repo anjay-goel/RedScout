@@ -53,12 +53,13 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 		"[#8b949e]SET/s [#484f58][[-][#f0883e]6[-][#484f58]][-]",
 		"[#8b949e]DEL/s [#484f58][[-][#f0883e]7[-][#484f58]][-]",
 		"[#8b949e]OPS/s [#484f58][[-][#f0883e]8[-][#484f58]][-]",
+		"[#8b949e]Types[-]",
 	}
 
 	ns.Table.Clear()
 	for i, h := range headers {
 		align := tview.AlignLeft
-		if i != 0 {
+		if i != 0 && i != len(headers)-1 {
 			align = tview.AlignRight
 		}
 		cell := tview.NewTableCell(h).
@@ -81,6 +82,7 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 			fmt.Sprintf("%10.1f/s", row.Ops[models.SetOp]),
 			fmt.Sprintf("%10.1f/s", row.Ops[models.DelOp]),
 			fmt.Sprintf("%10.1f/s", row.Ops[models.TotalOp]),
+			strings.Join(row.Types, ","),
 		}
 
 		colors := []tcell.Color{
@@ -93,6 +95,7 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 			theme.ColorSecondary,
 			theme.ColorSecondary,
 			theme.ColorSecondary,
+			theme.ColorMuted,
 		}
 
 		rowBg := theme.ColorBg
@@ -102,7 +105,7 @@ func (ns *Namespace) Update(prefix models.Key, stats models.NamespaceMetricList)
 
 		for j, val := range values {
 			align := tview.AlignLeft
-			if j != 0 {
+			if j != 0 && j != len(values)-1 {
 				align = tview.AlignRight
 			}
 			cell := tview.NewTableCell(val).
