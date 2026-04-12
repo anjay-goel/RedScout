@@ -70,7 +70,7 @@ func (header *HeaderView) updatePerformance(info *models.RedisInfo) {
 	totalKeys := info.Keyspace["db0"].Keys
 	avgTTL := info.Keyspace["db0"].AvgTTL
 
-	text := fmt.Sprintf(" [#484f58]PERFORMANCE[-]\n [#f0883e::b]%s[-::-] [#8b949e]keys[-] [#484f58]│[-] [#f0883e]%s[-] [#8b949e]ops[-] [#484f58]│[-] [#3fb950]%.1f%%[-] [#8b949e]hit[-] [#484f58]│[-] [#8b949e]TTL %s[-]",
+	text := fmt.Sprintf(" [#484f58]PERFORMANCE[-]\n [#484f58]Keys[-] [#f0883e::b]%s[-::-] [#484f58]· Ops[-] [#8b949e]%s[-] [#484f58]· Hit[-] [#3fb950]%.1f%%[-]\n [#484f58]TTL[-] [#8b949e]%s[-]",
 		utils.FormatNumber(float64(totalKeys)),
 		utils.FormatOpsPerSec(float64(info.Stats.OpsPerSec)),
 		info.Computed.HitRate*100,
