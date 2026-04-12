@@ -1,7 +1,10 @@
 package views
 
 import (
+	"fmt"
+
 	"github.com/rivo/tview"
+	"redscout/lib/ui/theme"
 	"redscout/lib/ui/views/components"
 	"redscout/models"
 )
@@ -16,7 +19,6 @@ const (
 )
 
 type BodyView struct {
-	Shortcuts   *tview.TextView
 	ContentFlex *tview.Flex
 	namespace   *components.Namespace
 	slowLog     *components.SlowLogTable
@@ -30,7 +32,6 @@ type BodyView struct {
 func NewBodyView(app *tview.Application) *BodyView {
 	view := &BodyView{
 		app:         app,
-		Shortcuts:   newShortcuts(),
 		ContentFlex: newContentFlex(),
 		namespace:   components.NewNamespace(),
 		slowLog:     components.NewSlowLogTable(),
@@ -61,81 +62,57 @@ var slowLogSortKeyMap = map[rune]string{
 	'4': "Command",
 }
 
-func newShortcuts() *tview.TextView {
-	return tview.NewTextView().
-		SetTextAlign(tview.AlignLeft).
-		SetDynamicColors(true)
-}
-
 func newContentFlex() *tview.Flex {
-	return tview.NewFlex().SetDirection(tview.FlexColumn)
+	f := tview.NewFlex().SetDirection(tview.FlexColumn)
+	f.SetBackgroundColor(theme.ColorBg)
+	return f
 }
 
 func newTabBar() *tview.TextView {
-	tabBar := tview.NewTextView().
+	tb := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignLeft)
-	return tabBar
+	tb.SetBackgroundColor(theme.ColorBg)
+	return tb
+}
+
+func tabLabel(name string, active bool) string {
+	if active {
+		return fmt.Sprintf("[#58a6ff::b]%s[-::-]", name)
+	}
+	return fmt.Sprintf("[#8b949e]%s[-]", name)
+}
+
+func (b *BodyView) updateTabBar() {
+	tabs := fmt.Sprintf(" %s  %s  %s  %s",
+		tabLabel("Namespaces", b.activeView == TabNamespace),
+		tabLabel("Slow Log", b.activeView == TabSlowLog),
+		tabLabel("Big Keys", b.activeView == TabBigKeys),
+		tabLabel("Hot Keys", b.activeView == TabHotKeys),
+	)
+	actions := "[#f0883e]S[-] [#484f58]scan[-]  [#f0883e]M[-] [#484f58]monitor[-]"
+	b.TabBar.SetText(fmt.Sprintf("%s                    %s", tabs, actions))
 }
 
 func (b *BodyView) SetActiveView(view Tab) {
 	b.activeView = view
+	b.updateTabBar()
 
 	switch view {
 	case TabNamespace:
 		b.ContentFlex.Clear().AddItem(b.namespace.Flex, 0, 2, true)
-		b.Shortcuts.SetText(components.StatsHeader)
-		b.TabBar.SetText(
-			`[::b][white:teal][[yellow]N[-]]amespace [white::-]` +
-				`[white:black][-:-]` +
-				`[white] Slow [[yellow]L[-]]og [-]` +
-				`[white:black][-:-]` +
-				`[white] [[yellow]B[-]]ig Keys [-]` +
-				`[white:black][-:-]` +
-				`[white] [[yellow]H[-]]ot Keys [-]`,
-		)
 		b.namespace.Table.Select(1, 0)
 		b.app.SetFocus(b.namespace.Table)
 	case TabSlowLog:
 		b.ContentFlex.Clear().AddItem(b.slowLog.Table, 0, 2, true)
-		b.Shortcuts.SetText(components.SlowLogHeader)
-		b.TabBar.SetText(
-			`[white][[yellow]N[-]]amespace [-]` +
-				`[white:black][-:-]` +
-				`[::b][white:teal] Slow [[yellow]L[-]]og [white::-]` +
-				`[white:black][-:-]` +
-				`[white] [[yellow]B[-]]ig Keys [-]` +
-				`[white:black][-:-]` +
-				`[white] [[yellow]H[-]]ot Keys [-]`,
-		)
 		b.slowLog.Table.Select(1, 0)
 		b.app.SetFocus(b.slowLog.Table)
 	case TabBigKeys:
 		b.ContentFlex.Clear().AddItem(b.bigKeyTable, 0, 2, true)
-		b.Shortcuts.SetText(components.BigKeysShortcutsText)
-		b.TabBar.SetText(
-			`[white][[yellow]N[-]]amespace [-]` +
-				`[white:black][-:-]` +
-				`[white] Slow [[yellow]L[-]]og [-]` +
-				`[white:black][-:-]` +
-				`[::b][white:teal] [[yellow]B[-]]ig Keys [white::-]` +
-				`[white:black][-:-]` +
-				`[white] [[yellow]H[-]]ot Keys [-]`,
-		)
 		b.bigKeyTable.Select(1, 0)
 		b.app.SetFocus(b.bigKeyTable)
 	case TabHotKeys:
 		b.ContentFlex.Clear().AddItem(b.hotKeyTable, 0, 2, true)
-		b.Shortcuts.SetText(components.HotKeysShortcutsText)
-		b.TabBar.SetText(
-			`[white][[yellow]N[-]]amespace [-]` +
-				`[white:black][-:-]` +
-				`[white] Slow [[yellow]L[-]]og [-]` +
-				`[white:black][-:-]` +
-				`[white] [[yellow]B[-]]ig Keys [-]` +
-				`[white:black][-:-]` +
-				`[::b][white:teal] [[yellow]H[-]]ot Keys [white::-]`,
-		)
 		b.hotKeyTable.Select(1, 0)
 		b.app.SetFocus(b.hotKeyTable)
 	}

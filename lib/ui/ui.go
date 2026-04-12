@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"redscout/lib/scanner"
+	"redscout/lib/ui/theme"
 	"redscout/lib/ui/views"
 	"redscout/lib/ui/views/components"
 	"redscout/models"
@@ -13,21 +14,18 @@ import (
 )
 
 type AppUI struct {
-	//Config
-	config *models.Config
-
-	//TODO: Decouple UI from Scanner
+	config  *models.Config
 	scanner *scanner.Scanner
 
-	//UI Components
-	app     *tview.Application
-	headers *views.HeaderView
-	body    *views.BodyView
+	app      *tview.Application
+	pages    *tview.Pages
+	titleBar *views.TitleBar
+	headers  *views.HeaderView
+	body     *views.BodyView
 
-	// Loading screen components
-	loadingTextView *tview.TextView
-
+	loadingTextView   *tview.TextView
 	initialisedLayout bool
+	helpVisible       bool
 }
 
 func NewAppUI(cfg models.Config) *AppUI {
@@ -36,9 +34,12 @@ func NewAppUI(cfg models.Config) *AppUI {
 	ui := &AppUI{
 		config:            &cfg,
 		app:               app,
+		pages:             tview.NewPages(),
 		body:              views.NewBodyView(app),
 		headers:           views.NewHeaderView(),
+		titleBar:          views.NewTitleBar(),
 		initialisedLayout: false,
+		helpVisible:       false,
 	}
 
 	return ui
@@ -46,22 +47,24 @@ func NewAppUI(cfg models.Config) *AppUI {
 
 func (ui *AppUI) createDisclaimerScreen() {
 	flex := tview.NewFlex().SetDirection(tview.FlexRow)
+	flex.SetBackgroundColor(theme.ColorBg)
 
 	disclaimer := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
-		SetText("[red]DISCLAIMER[-]\n\n" +
-			"[yellow]RedScout will run the 'MONITOR' command on your Redis instance.[-]\n" +
-			"[yellow]This can impact Redis performance. Use with caution on production environments.[-]\n\n" +
-			"[white]Do you want to continue?[white]\n\n" +
-			"[green]Y[-]es / [red]N[-]o")
+		SetText("[#f85149]DISCLAIMER[-]\n\n" +
+			"[#8b949e]RedScout will run the 'MONITOR' command on your Redis instance.[-]\n" +
+			"[#f0883e]This can impact Redis performance. Use with caution on production environments.[-]\n\n" +
+			"[#c9d1d9]Do you want to continue?[-]\n\n" +
+			"[#3fb950]Y[-]es / [#f85149]N[-]o")
 	disclaimer.SetBorder(true)
+	disclaimer.SetBorderColor(theme.ColorBorder)
+	disclaimer.SetBackgroundColor(theme.ColorBg)
 	disclaimer.SetBorderPadding(2, 2, 2, 2)
 
 	flex.AddItem(disclaimer, 0, 1, false)
 	ui.app.SetRoot(flex, true)
 
-	// Set up input capture for disclaimer
 	ui.app.SetInputCapture(func(e *tcell.EventKey) *tcell.EventKey {
 		switch e.Rune() {
 		case 'y', 'Y', '\r':
@@ -77,12 +80,15 @@ func (ui *AppUI) createDisclaimerScreen() {
 
 func (ui *AppUI) createErrorScreen(errorMsg string) {
 	flex := tview.NewFlex().SetDirection(tview.FlexRow)
+	flex.SetBackgroundColor(theme.ColorBg)
 
 	errorText := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
-		SetText(fmt.Sprintf("[red]ERROR[-]\n\n[white]%s[-]\n\n[green]R[-]etry / [red]Q[-]uit", errorMsg))
+		SetText(fmt.Sprintf("[#f85149]ERROR[-]\n\n[#c9d1d9]%s[-]\n\n[#3fb950]R[-]etry / [#f85149]Q[-]uit", errorMsg))
 	errorText.SetBorder(true)
+	errorText.SetBorderColor(theme.ColorBorder)
+	errorText.SetBackgroundColor(theme.ColorBg)
 	errorText.SetBorderPadding(2, 2, 2, 2)
 
 	flex.AddItem(errorText, 0, 1, false)
@@ -90,7 +96,6 @@ func (ui *AppUI) createErrorScreen(errorMsg string) {
 		ui.app.SetRoot(flex, true)
 	})
 
-	// Set up input capture for error screen
 	ui.app.SetInputCapture(func(e *tcell.EventKey) *tcell.EventKey {
 		switch e.Rune() {
 		case 'r', 'R', '\r':
@@ -121,18 +126,20 @@ func (ui *AppUI) start() {
 
 func (ui *AppUI) createLoadingScreen() {
 	flex := tview.NewFlex().SetDirection(tview.FlexRow)
+	flex.SetBackgroundColor(theme.ColorBg)
 
 	ui.loadingTextView = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
-		SetText("[yellow]Analysing Redis ⠋\n\n[white]Initializing...[-]")
+		SetText("[#f0883e]Analysing Redis ⠋\n\n[#c9d1d9]Initializing...[-]")
 	ui.loadingTextView.SetBorder(true)
+	ui.loadingTextView.SetBorderColor(theme.ColorBorder)
+	ui.loadingTextView.SetBackgroundColor(theme.ColorBg)
 	ui.loadingTextView.SetBorderPadding(2, 2, 2, 2)
 
 	flex.AddItem(ui.loadingTextView, 0, 1, false)
 	ui.app.SetRoot(flex, true)
 
-	// Spinner animation
 	spinner := []rune{'⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'}
 
 	go func() {
@@ -146,7 +153,7 @@ func (ui *AppUI) createLoadingScreen() {
 				ui.app.QueueUpdateDraw(func() {
 					var text string
 					if ui.scanner == nil || ui.scanner.State == nil {
-						text = fmt.Sprintf("[yellow]Analysing Redis %c\n\n[white]Initializing...[-]", spinner[i%len(spinner)])
+						text = fmt.Sprintf("[#f0883e]Analysing Redis %c\n\n[#c9d1d9]Initializing...[-]", spinner[i%len(spinner)])
 					} else if ui.scanner.State.ScanComplete {
 						ticker.Stop()
 						return
@@ -155,16 +162,16 @@ func (ui *AppUI) createLoadingScreen() {
 
 						if ui.scanner.State.ScanProgress < 100 {
 							scanBar := components.CreateProgressBar(ui.scanner.State.ScanProgress, 100, 40)
-							progressInfo = fmt.Sprintf("\n\n[cyan]%s[white]\n%s\n[white]%d keys collected[-]", ui.scanner.State.Status, scanBar, ui.scanner.State.ScannedKeys)
+							progressInfo = fmt.Sprintf("\n\n[#8b949e]%s[-]\n%s\n[#c9d1d9]%d keys collected[-]", ui.scanner.State.Status, scanBar, ui.scanner.State.ScannedKeys)
 						} else if ui.scanner.State.MonitorDurationTotal == 0 {
-							progressInfo = "\n\n[cyan]Starting monitor...[-]"
+							progressInfo = "\n\n[#8b949e]Starting monitor...[-]"
 						} else if ui.scanner.State.MonitorProgress < 100 {
 							elapsed := time.Duration(float64(ui.scanner.State.MonitorDurationTotal) * ui.scanner.State.MonitorProgress / 100)
 							monitorBar := components.CreateProgressBar(ui.scanner.State.MonitorProgress, 100, 40)
-							progressInfo = fmt.Sprintf("\n\n[cyan]Monitor Progress:[white]\n%s\n[white]%v / %v[-]", monitorBar, elapsed.Round(time.Second), ui.scanner.State.MonitorDurationTotal)
+							progressInfo = fmt.Sprintf("\n\n[#8b949e]Monitor Progress:[-]\n%s\n[#c9d1d9]%v / %v[-]", monitorBar, elapsed.Round(time.Second), ui.scanner.State.MonitorDurationTotal)
 						}
 
-						text = fmt.Sprintf("[yellow]Analysing Redis %c\n\n[white][-]%s", spinner[i%len(spinner)], progressInfo)
+						text = fmt.Sprintf("[#f0883e]Analysing Redis %c[-]\n\n%s", spinner[i%len(spinner)], progressInfo)
 					}
 					ui.loadingTextView.SetText(text)
 				})
@@ -176,20 +183,21 @@ func (ui *AppUI) createLoadingScreen() {
 
 func (ui *AppUI) createMainScreen() {
 	flex := tview.NewFlex().SetDirection(tview.FlexRow)
-	flex.Clear()
+	flex.SetBackgroundColor(theme.ColorBg)
 
-	flex.AddItem(ui.headers.HeaderFlex, 6, 0, false)
+	flex.AddItem(ui.titleBar.View, 1, 0, false)
+	flex.AddItem(ui.headers.HeaderFlex, 4, 0, false)
 
-	ui.body.TabBar.SetBorder(true).SetBorderPadding(0, 0, 1, 0)
-	flex.AddItem(ui.body.TabBar, 3, 0, false)
+	ui.body.TabBar.SetBorder(false)
+	flex.AddItem(ui.body.TabBar, 1, 0, false)
 
 	flex.AddItem(ui.body.ContentFlex, 0, 1, true)
 
-	ui.body.Shortcuts.SetBorder(true).SetBorderPadding(0, 0, 1, 0)
-	flex.AddItem(ui.body.Shortcuts, 3, 0, false)
+	ui.pages.AddPage("main", flex, true, true)
+	ui.pages.AddPage("help", views.NewHelpOverlay(), true, false)
 
 	ui.app.SetInputCapture(ui.handleInput)
-	ui.app.SetRoot(flex, true)
+	ui.app.SetRoot(ui.pages, true)
 }
 
 func (ui *AppUI) stateUpdateListener() {
@@ -214,11 +222,31 @@ func (ui *AppUI) Run() error {
 }
 
 func (ui *AppUI) update(ctx *models.State) {
+	ui.titleBar.Update(ctx)
 	ui.headers.Update(ctx)
 	ui.body.Update(ctx)
 }
 
 func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
+	if e.Rune() == '?' {
+		if ui.helpVisible {
+			ui.pages.HidePage("help")
+			ui.helpVisible = false
+		} else {
+			ui.pages.ShowPage("help")
+			ui.helpVisible = true
+		}
+		return nil
+	}
+	if e.Key() == tcell.KeyEscape && ui.helpVisible {
+		ui.pages.HidePage("help")
+		ui.helpVisible = false
+		return nil
+	}
+	if ui.helpVisible {
+		return nil
+	}
+
 	changed := true
 
 	switch e.Key() {
@@ -229,9 +257,7 @@ func (ui *AppUI) handleInput(e *tcell.EventKey) *tcell.EventKey {
 				return nil
 			}
 			namespace := ui.scanner.State.NamespaceStats[row-1].Namespace
-
 			ui.scanner.DrillDownNamespace(namespace)
-
 			return nil
 		}
 	case tcell.KeyBackspace, tcell.KeyBackspace2, tcell.KeyLeft:
