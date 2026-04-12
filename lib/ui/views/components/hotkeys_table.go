@@ -40,8 +40,8 @@ func UpdateHotKeyTable(table *tview.Table, hotKeys models.HotKeyList) {
 
 	for i, row := range hotKeys {
 		values := []string{
-			utils.TruncateKey(row.Key.String()),
-			fmt.Sprintf("%8.1f/s", row.Ops),
+			fmt.Sprintf("%-*s", utils.MaxKeyDisplayLen, utils.TruncateKey(row.Key.String())),
+			fmt.Sprintf("%10.1f/s", row.Ops),
 		}
 		for j, val := range values {
 			cell := tview.NewTableCell(fmt.Sprintf("[%s]%s", colors[j], val)).
