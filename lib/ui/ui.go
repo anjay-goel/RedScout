@@ -2,6 +2,8 @@ package ui
 
 import (
 	"fmt"
+	"strings"
+
 	"redscout/lib/scanner"
 	"redscout/lib/ui/theme"
 	"redscout/lib/ui/views"
@@ -189,10 +191,13 @@ func (ui *AppUI) createMainScreen() {
 	flex.AddItem(ui.headers.HeaderFlex, 5, 0, false)
 
 	ui.body.TabBar.SetBorder(false)
+	ui.body.TabBar.SetBorderPadding(0, 0, 0, 0)
 	flex.AddItem(ui.body.TabBar, 1, 0, false)
 
-	// Separator line below tabs
-	tabSep := tview.NewBox().SetBackgroundColor(theme.ColorBorder)
+	// Thin separator line below tabs
+	tabSep := tview.NewTextView().SetDynamicColors(true)
+	tabSep.SetBackgroundColor(theme.ColorBg)
+	tabSep.SetText("[#484f58]" + strings.Repeat("─", 300) + "[-]")
 	flex.AddItem(tabSep, 1, 0, false)
 
 	flex.AddItem(ui.body.ContentFlex, 0, 1, true)
