@@ -61,6 +61,20 @@ func FormatDuration(seconds int64) string {
 	return strings.TrimSpace(result)
 }
 
+func FormatUptime(seconds int64) string {
+	d := seconds / 86400
+	h := (seconds % 86400) / 3600
+	m := (seconds % 3600) / 60
+
+	if d > 0 {
+		return fmt.Sprintf("%dd %dh", d, h)
+	}
+	if h > 0 {
+		return fmt.Sprintf("%dh %dm", h, m)
+	}
+	return fmt.Sprintf("%dm", m)
+}
+
 const MaxKeyDisplayLen = 64
 
 func TruncateKey(key string) string {
