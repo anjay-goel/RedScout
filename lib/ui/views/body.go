@@ -81,20 +81,23 @@ func newTabBar() *tview.TextView {
 }
 
 func tabLabel(name string, key string, active bool) string {
-	shortcut := fmt.Sprintf("[#484f58][[-][#f0883e]%s[-][#484f58]][-]", key)
+	shortcut := fmt.Sprintf("[#7d8590][[-][#f0883e]%s[-][#7d8590]][-]", key)
 	if active {
+		// Active tab: bright blue + bold so the current view stands out.
 		return fmt.Sprintf("[#58a6ff::b]%s[-::-] %s", name, shortcut)
 	}
 	return fmt.Sprintf("[#8b949e]%s[-] %s", name, shortcut)
 }
 
 func (b *BodyView) updateTabBar() {
-	tabs := fmt.Sprintf(" %s  %s  %s  %s",
+	// Vertical dividers between tabs (not on the outer edges) so the row
+	// reads as a bar of selectable tabs.
+	div := "[#7d8590]│[-]"
+	tabs := fmt.Sprintf(" %s %s %s %s %s %s %s",
 		tabLabel("Namespaces", "N", b.activeView == TabNamespace),
-		tabLabel("Slow Log", "L", b.activeView == TabSlowLog),
-		tabLabel("Big Keys", "B", b.activeView == TabBigKeys),
-		tabLabel("Hot Keys", "H", b.activeView == TabHotKeys),
-	)
+		div, tabLabel("Slow Log", "L", b.activeView == TabSlowLog),
+		div, tabLabel("Big Keys", "B", b.activeView == TabBigKeys),
+		div, tabLabel("Hot Keys", "H", b.activeView == TabHotKeys))
 	b.TabBar.SetText(tabs)
 }
 

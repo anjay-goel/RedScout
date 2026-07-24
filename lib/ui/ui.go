@@ -197,7 +197,7 @@ func (ui *AppUI) createMainScreen() {
 	// Thin separator line below tabs
 	tabSep := tview.NewTextView().SetDynamicColors(true)
 	tabSep.SetBackgroundColor(theme.ColorBg)
-	tabSep.SetText("[#484f58]" + strings.Repeat("─", 300) + "[-]")
+	tabSep.SetText("[#21262d]" + strings.Repeat("─", 300) + "[-]")
 	flex.AddItem(tabSep, 1, 0, false)
 
 	flex.AddItem(ui.body.ContentFlex, 0, 1, true)

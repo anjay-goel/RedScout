@@ -16,7 +16,7 @@ func NewHelpOverlay() *tview.Grid {
 
 	helpText.SetText(
 		"[#58a6ff::b]Keyboard Shortcuts[-::-]\n" +
-			"[#484f58]press ? or Esc to close[-]\n\n" +
+			"[#7d8590]press ? or Esc to close[-]\n\n" +
 			"[#f0883e]NAVIGATION[-]\n" +
 			"[#f0883e]N[-] [#8b949e]Namespaces[-]    [#f0883e]L[-] [#8b949e]Slow Log[-]    [#f0883e]B[-] [#8b949e]Big Keys[-]    [#f0883e]H[-] [#8b949e]Hot Keys[-]    [#f0883e]T[-] [#8b949e]Next tab[-]\n\n" +
 			"[#f0883e]ACTIONS[-]\n" +
