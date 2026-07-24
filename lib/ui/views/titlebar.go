@@ -10,15 +10,28 @@ import (
 )
 
 type TitleBar struct {
-	View *tview.TextView
+	View  *tview.Flex
+	left  *tview.TextView
+	right *tview.TextView
 }
 
 func NewTitleBar() *TitleBar {
-	tv := tview.NewTextView().
+	left := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignLeft)
-	tv.SetBackgroundColor(theme.ColorBg)
-	return &TitleBar{View: tv}
+	left.SetBackgroundColor(theme.ColorBg)
+
+	right := tview.NewTextView().
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignRight)
+	right.SetBackgroundColor(theme.ColorBg)
+
+	view := tview.NewFlex().SetDirection(tview.FlexColumn)
+	view.SetBackgroundColor(theme.ColorBg)
+	view.AddItem(left, 0, 1, false)
+	view.AddItem(right, 0, 1, false)
+
+	return &TitleBar{View: view, left: left, right: right}
 }
 
 func (t *TitleBar) Update(state *models.State) {
@@ -28,8 +41,9 @@ func (t *TitleBar) Update(state *models.State) {
 	monitor := fmt.Sprintf("[#7d8590]Monitor[-] [#8b949e][[-][#f0883e]M[-][#8b949e]]:[-] [#8b949e]%s[-]",
 		utils.FormatDuration(int64(state.TotalMonitorDuration.Seconds())),
 	)
-	statusLog := fmt.Sprintf("[#7d8590]LOG › [#8b949e::d]%s[-::-]", state.Status)
-	helpHint := "[#8b949e][[-][#f0883e]?[-][#8b949e]][-] [#8b949e]help[-]"
+	t.left.SetText(fmt.Sprintf(" [#58a6ff::b]RedScout[-::-]  %s  %s", scan, monitor))
 
-	t.View.SetText(fmt.Sprintf(" [#58a6ff::b]RedScout[-::-]  %s  %s  %s  %s", scan, monitor, helpHint, statusLog))
+	helpHint := "[#8b949e][[-][#f0883e]?[-][#8b949e]][-] [#8b949e]help[-]"
+	status := fmt.Sprintf("[#3fb950]●[-] [#8b949e::d]%s[-::-]", state.Status)
+	t.right.SetText(fmt.Sprintf("%s   %s ", helpHint, status))
 }
