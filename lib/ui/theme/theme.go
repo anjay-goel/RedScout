@@ -8,7 +8,7 @@ var (
 	ColorBorder    = tcell.NewRGBColor(33, 38, 45)
 	ColorHighlight = tcell.NewRGBColor(48, 54, 61) // #30363d — selected row
 	ColorText      = tcell.NewRGBColor(201, 209, 217)
-	ColorMuted     = tcell.NewRGBColor(72, 79, 88)
+	ColorMuted     = tcell.NewRGBColor(125, 133, 144) // #7d8590 — labels/metadata (~5:1 contrast)
 	ColorSecondary = tcell.NewRGBColor(139, 148, 158)
 	ColorBlue      = tcell.NewRGBColor(88, 166, 255)
 	ColorOrange    = tcell.NewRGBColor(240, 136, 62)

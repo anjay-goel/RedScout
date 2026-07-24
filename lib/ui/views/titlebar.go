@@ -22,15 +22,14 @@ func NewTitleBar() *TitleBar {
 }
 
 func (t *TitleBar) Update(state *models.State) {
-	scan := fmt.Sprintf("[#484f58]Scanned[-] [#8b949e][[-][#f0883e]S[-][#8b949e]]:[-] [#8b949e]%d keys[-]",
+	scan := fmt.Sprintf("[#7d8590]Scanned[-] [#8b949e][[-][#f0883e]S[-][#8b949e]]:[-] [#8b949e]%d keys[-]",
 		state.ScannedKeys,
 	)
-	monitor := fmt.Sprintf("[#484f58]Monitor[-] [#8b949e][[-][#f0883e]M[-][#8b949e]]:[-] [#8b949e]%s[-]",
+	monitor := fmt.Sprintf("[#7d8590]Monitor[-] [#8b949e][[-][#f0883e]M[-][#8b949e]]:[-] [#8b949e]%s[-]",
 		utils.FormatDuration(int64(state.TotalMonitorDuration.Seconds())),
 	)
-	statusLog := fmt.Sprintf("[#484f58]LOG › [#8b949e::d]%s[-::-]", state.Status)
+	statusLog := fmt.Sprintf("[#7d8590]LOG › [#8b949e::d]%s[-::-]", state.Status)
 	helpHint := "[#8b949e][[-][#f0883e]?[-][#8b949e]][-] [#8b949e]help[-]"
-	legend := "[#8b949e][[-][#f0883e]orange[-] [#8b949e]= shortcut][-]"
 
-	t.View.SetText(fmt.Sprintf(" [#58a6ff::b]RedScout[-::-]  %s  %s  %s  %s  %s", scan, monitor, helpHint, legend, statusLog))
+	t.View.SetText(fmt.Sprintf(" [#58a6ff::b]RedScout[-::-]  %s  %s  %s  %s", scan, monitor, helpHint, statusLog))
 }

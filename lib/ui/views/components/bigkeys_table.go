@@ -26,9 +26,9 @@ func NewBigKeyTable() *tview.Table {
 func UpdateBigKeyTable(table *tview.Table, bigKeys models.BigKeyList) {
 	headers := []string{
 		"[#8b949e]Key[-]",
-		"[#8b949e]Size [#484f58][[-][#f0883e]1[-][#484f58]][-]",
-		"[#8b949e]Type [#484f58][[-][#f0883e]2[-][#484f58]][-]",
-		"[#8b949e]TTL [#484f58][[-][#f0883e]3[-][#484f58]][-]",
+		"[#8b949e]Size [#7d8590][[-][#f0883e]1[-][#7d8590]][-]",
+		"[#8b949e]Type [#7d8590][[-][#f0883e]2[-][#7d8590]][-]",
+		"[#8b949e]TTL [#7d8590][[-][#f0883e]3[-][#7d8590]][-]",
 	}
 
 	table.Clear()
