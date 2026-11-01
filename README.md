@@ -24,8 +24,6 @@ hierarchies and regular expressions to automatically identify and infer id compo
 curl -fsSL https://raw.githubusercontent.com/anjay-goel/RedScout/main/install.sh | sh
 ```
 
-Works on macOS and Linux.
-
 ## Usage
 
 ```bash
