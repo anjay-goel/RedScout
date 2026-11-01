@@ -20,12 +20,16 @@ hierarchies and regular expressions to automatically identify and infer id compo
 
 ## Installation
 
-Download the appropriate binary for your platform from the releases page.
+```bash
+curl -fsSL https://raw.githubusercontent.com/anjay-goel/RedScout/main/install.sh | sh
+```
+
+Works on macOS and Linux.
 
 ## Usage
 
 ```bash
-./redscout \
+redscout \
   -h redis.example.com \
   -p 6380 \
   -a "your-password" \
